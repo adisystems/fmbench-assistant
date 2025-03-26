@@ -1,21 +1,14 @@
-FROM python:3.11-slim
+FROM amazon/aws-lambda-python:3.11
 
-RUN pip install poetry==1.6.1
+# Install deps
+COPY requirements.txt ${LAMBDA_TASK_ROOT}
 
-RUN poetry config virtualenvs.create false
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+RUN pip install -U boto3 botocore
 
-WORKDIR /code
+# Copy function code
+COPY lambda/ ${LAMBDA_TASK_ROOT}/
 
-COPY ./pyproject.toml ./README.md ./poetry.lock* ./
-
-COPY ./package[s] ./packages
-
-RUN poetry install  --no-interaction --no-ansi --no-root
-
-COPY ./app ./app
-
-RUN poetry install --no-interaction --no-ansi
-
-EXPOSE 8080
-
-CMD exec uvicorn app.server:app --host 0.0.0.0 --port 8080
+# Set the CMD to your handler
+CMD [ "index.handler" ]
