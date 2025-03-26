@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "ai-agent-deploy"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [
+    { include = "app" },
+]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+uvicorn = "^0.23.2"
+langserve = {extras = ["server"], version = ">=0.0.30"}
+pydantic = ">=2,<3"
+langchain-core = ">=0.3.12,<0.4.0"
+langgraph = ">=0.2.28,<0.3.0"
+langchain = ">=0.3.3,<0.4.0"
+langchain-aws = ">=0.2.2,<0.3.0"
+langchain-community = ">=0.3.2,<0.4.0"
+langchain-pinecone = ">=0.2.0,<0.3.0"
+boto3 = ">=1.35.43,<1.36.0"
+langchain-cli = ">=0.0.31,<0.1.0"
+
+
+[tool.poetry.group.dev.dependencies]
+langchain-cli = ">=0.0.15"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

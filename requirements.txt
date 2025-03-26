@@ -1,0 +1,12 @@
+uvicorn==0.23.2
+langserve[server]>=0.0.30
+pydantic>=2,<3
+langchain-core==0.3.12
+langgraph==0.2.38
+langchain==0.3.3
+langchain-aws==0.2.2
+langchain-community==0.3.2
+langchain-pinecone==0.2.0
+boto3==1.35.43
+langchain-cli==0.0.31
+poetry==1.8.4
