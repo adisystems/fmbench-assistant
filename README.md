@@ -2,6 +2,39 @@
 
 This repository contains an AI agent for the Georgetown Course Finder, built with LangChain and deployed as an AWS Lambda function.
 
+## System Architecture
+
+```mermaid
+graph LR
+    subgraph "Development"
+        A["Agent Building"] --> B["Open Source Frameworks"]
+        B --> C1["LangGraph"]
+        B --> C2["LlamaIndex"]
+        B --> C3["CrewAI"]
+    end
+    
+    subgraph "API & Packaging"
+        C1 & C2 & C3 --> D["FastAPI"]
+        D --> E["Docker Container"]
+    end
+    
+    subgraph "AWS Deployment"
+        E --> F["AWS Services"]
+        F --> G1["Lambda"]
+        F --> G2["Fargate"]
+        F --> G3["ECS"]
+        F --> G4["EC2"]
+    end
+    
+    classDef dev fill:#d1f0ff,stroke:#0077b6
+    classDef mid fill:#ffe8d1,stroke:#b66300
+    classDef aws fill:#ffd1e8,stroke:#b6007a
+    
+    class A,B,C1,C2,C3 dev
+    class D,E mid
+    class F,G1,G2,G3,G4 aws
+```
+
 ## Installation
 
 This project uses [uv](https://github.com/astral-sh/uv) for fast, reliable Python package management.
