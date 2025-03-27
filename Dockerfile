@@ -10,7 +10,7 @@ COPY README.md ${LAMBDA_TASK_ROOT}/
 COPY LICENSE ${LAMBDA_TASK_ROOT}/
 
 # Install dependencies using uv
-RUN cd ${LAMBDA_TASK_ROOT} && uv pip install -e .
+RUN cd ${LAMBDA_TASK_ROOT} && uv venv && uv pip install -e .
 RUN uv pip install -U boto3 botocore
 
 # Copy function code

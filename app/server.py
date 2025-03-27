@@ -92,7 +92,10 @@ def get_course_info(course_code: str) -> dict:
         }
         
     # Create Tavily search tool with explicit API key and more results
-    search_tool = TavilySearchResults(max_results=5, tavily_api_key=tavily_api_key, search_depth="advanced")
+    from langchain_community.tools import DuckDuckGoSearchRun
+
+    search_tool = DuckDuckGoSearchRun()
+    #search_tool = TavilySearchResults(max_results=5, tavily_api_key=tavily_api_key, search_depth="advanced")
     
     # Generate multiple targeted search queries to get comprehensive information
     search_queries = [
@@ -109,7 +112,8 @@ def get_course_info(course_code: str) -> dict:
         for query in search_queries:
             try:
                 search_results = search_tool.invoke(query)
-                all_results.extend(search_results)
+                #print(f"search_results={search_results}")
+                all_results.append(search_results)
                 # Brief pause to avoid overwhelming the API
                 time.sleep(0.5)
             except Exception as e:
@@ -120,7 +124,7 @@ def get_course_info(course_code: str) -> dict:
         if not all_results:
             general_query = f"Georgetown University course {course_code}"
             search_results = search_tool.invoke(general_query)
-            all_results.extend(search_results)
+            all_results.append(search_results)
             
     except Exception as e:
         logger.error(f"Error during all Tavily searches: {str(e)}")
@@ -138,6 +142,7 @@ def get_course_info(course_code: str) -> dict:
         }
     
     # Process the search results to extract structured information
+    print(f"all_results=\n{all_results}")
     extracted_info = {
         "course_code": course_code,
         "title": extract_course_title(all_results, course_code),
@@ -149,6 +154,7 @@ def get_course_info(course_code: str) -> dict:
     }
     
     # Include all raw content for the agent to analyze
+    
     all_content = "\n".join([result.get("content", "") for result in all_results])
     
     return {

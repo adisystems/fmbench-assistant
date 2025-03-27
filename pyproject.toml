@@ -21,6 +21,8 @@ dependencies = [
     "boto3>=1.35.43,<1.36.0",
     "langchain-cli>=0.0.31,<0.1.0",
     "colorama>=0.4.6",
+    "streamlit>=1.44.0",
+    "duckduckgo-search>=7.5.4",
 ]
 
 [project.optional-dependencies]
@@ -35,5 +37,5 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["app", "lambda"]
 
-[tool.uv]
-python = "3.11"
+#[tool.uv]
+#python = "3.11"
