@@ -69,7 +69,7 @@ def get_course_info(course_code: str) -> dict:
         course_code (str): The course code (e.g., COMP-167, GOVT-020, DSAN-500)
         
     Returns:
-        dict: Contains course details retrieved from Georgetown's websites and catalog
+        dict: Contains basic course details and raw search results for the LLM to analyze and extract structured data.
     """
     # Standardize course code format
     course_code = course_code.upper().replace(" ", "-")
@@ -81,10 +81,6 @@ def get_course_info(course_code: str) -> dict:
         return {
             "course_info": {
                 "course_code": course_code,
-                "title": f"Georgetown {course_code}",
-                "description": "Unable to retrieve course details: Missing API key for search service.",
-                "professor": "Information not available",
-                "schedule": "Information not available",
                 "department": extract_department(course_code),
                 "source_urls": []
             },
@@ -112,7 +108,6 @@ def get_course_info(course_code: str) -> dict:
         for query in search_queries:
             try:
                 search_results = search_tool.invoke(query)
-                #print(f"search_results={search_results}")
                 all_results.append(search_results)
                 # Brief pause to avoid overwhelming the API
                 time.sleep(0.5)
@@ -131,114 +126,36 @@ def get_course_info(course_code: str) -> dict:
         return {
             "course_info": {
                 "course_code": course_code,
-                "title": f"Georgetown {course_code}",
-                "description": "Unable to retrieve course details due to a search service error.",
-                "professor": "Information not available",
-                "schedule": "Information not available",
                 "department": extract_department(course_code),
                 "source_urls": []
             },
             "error": str(e)
         }
     
-    # Process the search results to extract structured information
     print(f"all_results=\n{all_results}")
-    extracted_info = {
+    
+    # Safely extract source URLs if available
+    source_urls = []
+    for result in all_results[:5]:
+        if isinstance(result, dict) and "url" in result:
+            source_urls.append(result["url"])
+    
+    basic_info = {
         "course_code": course_code,
-        "title": extract_course_title(all_results, course_code),
-        "description": extract_course_description(all_results),
-        "professor": extract_professor(all_results),
-        "schedule": extract_schedule(all_results),
         "department": extract_department(course_code),
-        "source_urls": list(set([result["url"] for result in all_results[:5]]))  # Deduplicate URLs
+        "source_urls": list(set(source_urls))
     }
     
-    # Include all raw content for the agent to analyze
-    
-    all_content = "\n".join([result.get("content", "") for result in all_results])
+    # Safely extract all content from results, handling both dicts and strings
+    all_content = "\n".join(
+        [result.get("content", "") if isinstance(result, dict) else result for result in all_results]
+    )
     
     return {
-        "course_info": extracted_info,
+        "course_info": basic_info,
         "raw_search_results": all_results[:2],  # Limit raw results to keep response size manageable
         "all_content": all_content[:10000]  # Limit content length but provide substantial text for analysis
     }
-
-def extract_course_title(results, course_code):
-    """Extract course title from search results"""
-    # Look for patterns like "COURSE-CODE: Course Title" or "Course Title (COURSE-CODE)"
-    for result in results:
-        content = result.get("content", "")
-        
-        # Try to find title after course code with colon
-        pattern = f"{course_code}:?\s+(.*?)(?:\.|$|\n)"
-        matches = re.search(pattern, content, re.IGNORECASE)
-        if matches and matches.group(1):
-            return matches.group(1).strip()
-            
-        # Look for title followed by course code in parentheses
-        words = content.split()
-        for i in range(len(words) - 1):
-            if course_code in words[i+1] and words[i+1].startswith("(") and words[i+1].endswith(")"):
-                # Return up to 5 words before the course code as the title
-                start = max(0, i-5)
-                return " ".join(words[start:i+1])
-    
-    # If no specific title found, return first content snippet
-    if results:
-        return "Title information not specifically found in search results"
-
-def extract_course_description(results):
-    """Extract course description from search results"""
-    description_markers = ["description", "overview", "course explores", "introduction to", "this course"]
-    
-    for result in results:
-        content = result.get("content", "")
-        
-        # Find paragraphs that might be descriptions
-        paragraphs = content.split("\n")
-        for paragraph in paragraphs:
-            paragraph = paragraph.strip()
-            if len(paragraph) > 50 and any(marker in paragraph.lower() for marker in description_markers):
-                # Limit to 200 characters and add ellipsis
-                if len(paragraph) > 200:
-                    return paragraph[:200] + "..."
-                return paragraph
-    
-    return "No detailed description found in search results"
-
-def extract_professor(results):
-    """Extract professor information from search results"""
-    professor_patterns = [
-        r"(?:taught|instructor|professor|prof\.?|faculty):?\s+(?:Dr\.?|Professor|Prof\.?)?\s+([A-Z][a-z]+ [A-Z][a-z]+)",
-        r"(?:Dr\.?|Professor|Prof\.?)\s+([A-Z][a-z]+ [A-Z][a-z]+)"
-    ]
-    
-    for result in results:
-        content = result.get("content", "")
-        
-        for pattern in professor_patterns:
-            matches = re.search(pattern, content)
-            if matches:
-                return matches.group(1)
-    
-    return "Professor information not found in search results"
-
-def extract_schedule(results):
-    """Extract schedule information from search results"""
-    schedule_patterns = [
-        r"(?:schedule|meeting|meets|class times?):?\s+([MTWRF]{1,5}\s+\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?\s*-\s*\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?)",
-        r"([MTWRF]{1,5}\s+\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?\s*-\s*\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?)"
-    ]
-    
-    for result in results:
-        content = result.get("content", "")
-        
-        for pattern in schedule_patterns:
-            matches = re.search(pattern, content, re.IGNORECASE)
-            if matches:
-                return matches.group(1)
-    
-    return "Schedule information not found in search results"
 
 def extract_department(course_code):
     """Extract department from course code"""
@@ -254,7 +171,7 @@ from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_aws import ChatBedrockConverse
 
-# Define system prompt
+# Define system prompt with updated instruction regarding extraction
 SYSTEM_PROMPT = """
 You are a helpful AI assistant specialized in providing comprehensive information about Georgetown University courses.
 
@@ -263,6 +180,7 @@ When students ask about courses, extract the course code and use the get_course_
 
 You will receive search results that include both structured information and raw content from various websites.
 Your job is to carefully analyze ALL of this information to provide the most complete picture of the course.
+NOTE: Do not rely on any automated regex parsing from the search tool response. Instead, analyze the raw search results provided and extract the structured course data (such as title, professor, schedule, etc.) directly in your answer.
 
 Present your responses in a clean, simple format that will display well in any interface:
 
@@ -334,7 +252,6 @@ async def generate_route(request: QuestionRequest):
                 model="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
                 temperature=0,
                 max_tokens=1000
-                # Don't include model_kwargs - these parameters are already set above
             )
         except Exception as e:
             logger.error(f"Error initializing Bedrock model: {str(e)}")
@@ -356,27 +273,34 @@ async def generate_route(request: QuestionRequest):
         # Add the new user message
         messages.append(HumanMessage(content=request.question))
         
-        # Invoke the agent with retry handling
-        try:
-            response = agent_executor.invoke({"messages": messages})
-            logger.info(response["messages"])
-        except Exception as e:
-            logger.error(f"Error during agent execution: {str(e)}")
-            # Return a helpful error message
-            if "ThrottlingException" in str(e):
-                return {
-                    "result": [{
-                        "role": "system", 
-                        "content": "I'm sorry, but our service is currently experiencing high demand. Please try again in a few moments."
-                    }]
-                }
-            else:
-                return {
-                    "result": [{
-                        "role": "system",
-                        "content": f"I'm sorry, but I encountered an error while processing your request. Please try again later."
-                    }]
-                }
+        # Invoke the agent with retry handling for throttling exceptions
+        max_retries = 5
+        retry_delay = 3  # initial delay increased to 3 seconds
+        for attempt in range(max_retries):
+            try:
+                response = agent_executor.invoke({"messages": messages})
+                logger.info(response["messages"])
+                break  # successful execution, exit loop
+            except Exception as e:
+                if "ThrottlingException" in str(e):
+                    logger.warning(f"ThrottlingException encountered on attempt {attempt+1} of {max_retries}: {str(e)}")
+                    if attempt == max_retries - 1:
+                        return {
+                            "result": [{
+                                "role": "system", 
+                                "content": "I'm sorry, but our service is currently experiencing high demand. Please try again in a few moments."
+                            }]
+                        }
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # exponential backoff
+                else:
+                    logger.error(f"Error during agent execution: {str(e)}")
+                    return {
+                        "result": [{
+                            "role": "system",
+                            "content": "I'm sorry, but I encountered an error while processing your request. Please try again later."
+                        }]
+                    }
         
         # Update conversation memory
         conversation_memory[request.thread_id] = response["messages"]
