@@ -156,22 +156,6 @@ def get_course_info(course_code: str) -> dict:
         "raw_search_results": all_results[:2],  # Limit raw results to keep response size manageable
         "all_content": all_content[:10000]  # Limit content length but provide substantial text for analysis
     }
-    
-    # Process the search results to extract structured information
-    extracted_info = {
-        "course_code": course_code,
-        "title": extract_course_title(all_results, course_code),
-        "description": extract_course_description(all_results),
-        "professor": extract_professor(all_results),
-        "schedule": extract_schedule(all_results),
-        "department": extract_department(course_code),
-        "source_urls": [result["url"] for result in all_results[:2]]
-    }
-    
-    return {
-        "course_info": extracted_info,
-        "raw_search_results": all_results[:1]  # Limit raw results to keep response size manageable
-    }
 
 def extract_course_title(results, course_code):
     """Extract course title from search results"""

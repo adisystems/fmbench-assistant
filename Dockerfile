@@ -1,11 +1,17 @@
 FROM amazon/aws-lambda-python:3.11
 
-# Install deps
-COPY requirements.txt ${LAMBDA_TASK_ROOT}
-
+# Install uv
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
-RUN pip install -U boto3 botocore
+RUN pip install uv
+
+# Copy project files
+COPY pyproject.toml ${LAMBDA_TASK_ROOT}/
+COPY README.md ${LAMBDA_TASK_ROOT}/
+COPY LICENSE ${LAMBDA_TASK_ROOT}/
+
+# Install dependencies using uv
+RUN cd ${LAMBDA_TASK_ROOT} && uv pip install -e .
+RUN uv pip install -U boto3 botocore
 
 # Copy function code
 COPY lambda/ ${LAMBDA_TASK_ROOT}/
