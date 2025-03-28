@@ -6,12 +6,11 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 import boto3
 from colorama import init, Fore, Style
-import re
 from dotenv import load_dotenv
-
-# Load environment variables with explicit path
 from pathlib import Path
-env_path = Path(__file__).parent.parent / '.env'  # Go up one directory to find .env in project root
+
+# Load environment variables with explicit path 
+env_path = Path(__file__).parent.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
 # ----------------------------
@@ -47,34 +46,102 @@ logger.setLevel(logging.INFO)
 # ----------------------------
 # FastAPI App Initialization
 # ----------------------------
-app = FastAPI(title="Georgetown Course Information Agent", 
-              description="AI assistant for finding Georgetown University course information")
+app = FastAPI(
+    title="Georgetown Course Information Agent", 
+    description="AI assistant for finding Georgetown University course information"
+)
 
 @app.get("/")
 async def redirect_root_to_docs():
     return RedirectResponse("/docs")
 
 # ----------------------------
+# Unified Search Wrapper Functions
+# ----------------------------
+def score_results(results):
+    """
+    Simple heuristic scoring function based on keyword occurrence.
+    Adjust or expand this as needed.
+    """
+    score = 0
+    if isinstance(results, list):
+        for result in results:
+            content = ""
+            if isinstance(result, dict):
+                content = result.get("content", "").lower()
+            else:
+                content = str(result).lower()
+            if "georgetown" in content:
+                score += 1
+            if "course" in content:
+                score += 1
+    return score
+
+def unified_search(query, tavily_api_key):
+    """
+    Executes the query using both DuckDuckGo and Tavily,
+    then returns the result with the higher heuristic score.
+    """
+    from langchain_community.tools import DuckDuckGoSearchRun
+    from langchain_community.tools.tavily_search import TavilySearchResults
+
+    ddg_tool = DuckDuckGoSearchRun()
+    tavily_tool = TavilySearchResults(
+        max_results=5, 
+        tavily_api_key=tavily_api_key, 
+        search_depth="advanced"
+    )
+
+    ddg_results, tavily_results = None, None
+
+    try:
+        ddg_results = ddg_tool.invoke(query)
+    except Exception as e:
+        logger.warning(f"DDG search failed for query '{query}': {e}")
+    
+    try:
+        tavily_results = tavily_tool.invoke(query)
+    except Exception as e:
+        logger.warning(f"Tavily search failed for query '{query}': {e}")
+
+    ddg_score = score_results(ddg_results) if ddg_results else 0
+    tavily_score = score_results(tavily_results) if tavily_results else 0
+
+    if tavily_score > ddg_score:
+        return tavily_results
+    else:
+        return ddg_results
+
+def flatten_results(results):
+    """
+    Recursively flattens nested lists of results.
+    """
+    flattened = []
+    if isinstance(results, list):
+        for item in results:
+            if isinstance(item, list):
+                flattened.extend(flatten_results(item))
+            else:
+                flattened.append(item)
+    else:
+        flattened.append(results)
+    return flattened
+
+# ----------------------------
 # Georgetown Course Information Tool
 # ----------------------------
 from langchain_core.tools import tool
-from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_community.tools.tavily_search import TavilySearchResults  # for typing/reference
 
 @tool
 def get_course_info(course_code: str) -> dict:
     """
     Get comprehensive information about a Georgetown University course based on its code using web search.
-    
-    Args:
-        course_code (str): The course code (e.g., COMP-167, GOVT-020, DSAN-500)
-        
-    Returns:
-        dict: Contains basic course details and raw search results for the LLM to analyze and extract structured data.
     """
     # Standardize course code format
     course_code = course_code.upper().replace(" ", "-")
     
-    # Ensure we have an API key
+    # Ensure we have an API key for Tavily
     tavily_api_key = os.getenv("TAVILY_API_KEY")
     if not tavily_api_key:
         logger.error("Tavily API key not found in environment variables")
@@ -87,12 +154,6 @@ def get_course_info(course_code: str) -> dict:
             "error": "Missing Tavily API key"
         }
         
-    # Create Tavily search tool with explicit API key and more results
-    from langchain_community.tools import DuckDuckGoSearchRun
-
-    search_tool = DuckDuckGoSearchRun()
-    #search_tool = TavilySearchResults(max_results=5, tavily_api_key=tavily_api_key, search_depth="advanced")
-    
     # Generate multiple targeted search queries to get comprehensive information
     search_queries = [
         f"Georgetown University {course_code} syllabus description",
@@ -103,26 +164,25 @@ def get_course_info(course_code: str) -> dict:
     
     all_results = []
     
-    # Execute search with error handling, trying multiple queries
     try:
         for query in search_queries:
             try:
-                search_results = search_tool.invoke(query)
-                all_results.append(search_results)
-                # Brief pause to avoid overwhelming the API
+                results = unified_search(query, tavily_api_key)
+                all_results.append(results)
+                # Brief pause to avoid overwhelming the APIs
                 time.sleep(0.5)
             except Exception as e:
-                logger.warning(f"Error during Tavily search with query '{query}': {str(e)}")
+                logger.warning(f"Error during unified search with query '{query}': {e}")
                 continue
         
-        # If we got no results at all, try a more general query
+        # Fallback to a more general query if no results were obtained
         if not all_results:
             general_query = f"Georgetown University course {course_code}"
-            search_results = search_tool.invoke(general_query)
-            all_results.append(search_results)
+            results = unified_search(general_query, tavily_api_key)
+            all_results.append(results)
             
     except Exception as e:
-        logger.error(f"Error during all Tavily searches: {str(e)}")
+        logger.error(f"Error during all unified searches: {e}")
         return {
             "course_info": {
                 "course_code": course_code,
@@ -132,11 +192,16 @@ def get_course_info(course_code: str) -> dict:
             "error": str(e)
         }
     
-    print(f"all_results=\n{all_results}")
+    # Flatten the results to handle nested lists
+    flattened_results = []
+    for res in all_results:
+        flattened_results.extend(flatten_results(res))
+    
+    print(f"flattened_results=\n{flattened_results}")
     
     # Safely extract source URLs if available
     source_urls = []
-    for result in all_results[:5]:
+    for result in flattened_results[:5]:
         if isinstance(result, dict) and "url" in result:
             source_urls.append(result["url"])
     
@@ -146,20 +211,19 @@ def get_course_info(course_code: str) -> dict:
         "source_urls": list(set(source_urls))
     }
     
-    # Safely extract all content from results, handling both dicts and strings
+    # Concatenate all content from results, ensuring each item is a string
     all_content = "\n".join(
-        [result.get("content", "") if isinstance(result, dict) else result for result in all_results]
+        [result.get("content", "") if isinstance(result, dict) else str(result) for result in flattened_results]
     )
     
     return {
         "course_info": basic_info,
-        "raw_search_results": all_results[:2],  # Limit raw results to keep response size manageable
+        "raw_search_results": flattened_results[:2],  # Limit raw results to keep response size manageable
         "all_content": all_content[:10000]  # Limit content length but provide substantial text for analysis
     }
 
 def extract_department(course_code):
-    """Extract department from course code"""
-    # Assumes format like COMP-167, GOVT-020
+    """Extract department from course code (assumes format like COMP-167 or GOVT-020)"""
     if "-" in course_code:
         return course_code.split("-")[0]
     return course_code.split()[0] if " " in course_code else course_code
@@ -171,7 +235,6 @@ from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_aws import ChatBedrockConverse
 
-# Define system prompt with updated instruction regarding extraction
 SYSTEM_PROMPT = """
 You are a helpful AI assistant specialized in providing comprehensive information about Georgetown University courses.
 
@@ -254,7 +317,7 @@ async def generate_route(request: QuestionRequest):
                 max_tokens=1000
             )
         except Exception as e:
-            logger.error(f"Error initializing Bedrock model: {str(e)}")
+            logger.error(f"Error initializing Bedrock model: {e}")
             return {
                 "result": [{
                     "role": "system",
@@ -275,7 +338,7 @@ async def generate_route(request: QuestionRequest):
         
         # Invoke the agent with retry handling for throttling exceptions
         max_retries = 5
-        retry_delay = 3  # initial delay increased to 3 seconds
+        retry_delay = 3  # initial delay in seconds
         for attempt in range(max_retries):
             try:
                 response = agent_executor.invoke({"messages": messages})
@@ -283,7 +346,7 @@ async def generate_route(request: QuestionRequest):
                 break  # successful execution, exit loop
             except Exception as e:
                 if "ThrottlingException" in str(e):
-                    logger.warning(f"ThrottlingException encountered on attempt {attempt+1} of {max_retries}: {str(e)}")
+                    logger.warning(f"ThrottlingException encountered on attempt {attempt+1} of {max_retries}: {e}")
                     if attempt == max_retries - 1:
                         return {
                             "result": [{
@@ -294,7 +357,7 @@ async def generate_route(request: QuestionRequest):
                     time.sleep(retry_delay)
                     retry_delay *= 2  # exponential backoff
                 else:
-                    logger.error(f"Error during agent execution: {str(e)}")
+                    logger.error(f"Error during agent execution: {e}")
                     return {
                         "result": [{
                             "role": "system",
@@ -317,7 +380,7 @@ async def generate_route(request: QuestionRequest):
         return {"result": outputs}
         
     except Exception as e:
-        logger.error(f"Error in agent processing: {str(e)}", exc_info=True)
+        logger.error(f"Error in agent processing: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 # ----------------------------
