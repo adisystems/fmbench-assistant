@@ -10,3 +10,9 @@ langchain-pinecone==0.2.0
 boto3==1.35.43
 langchain-cli==0.0.31
 poetry==1.8.4
+
+# DSAN search dependencies
+transformers>=4.38.2
+torch>=2.0.0
+faiss-cpu>=1.7.4
+numpy>=1.24.0

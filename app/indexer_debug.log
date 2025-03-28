@@ -1,0 +1,567 @@
+2025-03-28 13:38:14,480 - __main__ - DEBUG - Base directory: /Users/isfarbaset/Desktop/gtown-course-finder
+2025-03-28 13:38:14,480 - __main__ - DEBUG - DATA_PATH: /Users/isfarbaset/Desktop/gtown-course-finder/data/documents_1.json
+2025-03-28 13:38:14,480 - __main__ - DEBUG - INDEX_PATH: /Users/isfarbaset/Desktop/gtown-course-finder/data/dsan_faiss.index
+2025-03-28 13:38:14,480 - __main__ - DEBUG - PROCESSED_DATA_PATH: /Users/isfarbaset/Desktop/gtown-course-finder/data/processed_documents.json
+2025-03-28 13:38:14,480 - __main__ - DEBUG - MAPPING_PATH: /Users/isfarbaset/Desktop/gtown-course-finder/data/documents_mapping.json
+2025-03-28 13:38:14,481 - __main__ - DEBUG - Current working directory: /Users/isfarbaset/Desktop/gtown-course-finder/app
+2025-03-28 13:38:14,481 - __main__ - DEBUG - Python executable: /Users/isfarbaset/.pyenv/versions/3.11.6/bin/python
+2025-03-28 13:38:14,481 - __main__ - DEBUG - Checking permissions on data directory: /Users/isfarbaset/Desktop/gtown-course-finder/data
+2025-03-28 13:38:14,481 - __main__ - DEBUG - Successfully wrote test file to data directory
+2025-03-28 13:38:14,481 - __main__ - DEBUG - Checking if json_path exists: True
+2025-03-28 13:38:14,481 - __main__ - INFO - Loading tokenizer and model for embedding generation
+2025-03-28 13:38:14,486 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-03-28 13:38:14,553 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-03-28 13:38:14,627 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json HTTP/11" 200 0
+2025-03-28 13:38:15,239 - __main__ - INFO - Model and tokenizer loaded successfully
+2025-03-28 13:38:15,239 - __main__ - INFO - Loading data from /Users/isfarbaset/Desktop/gtown-course-finder/data/documents_1.json
+2025-03-28 13:38:15,240 - __main__ - INFO - Loaded 51 documents from /Users/isfarbaset/Desktop/gtown-course-finder/data/documents_1.json
+2025-03-28 13:38:15,240 - __main__ - INFO - Creating enhanced documents from 51 original docs
+2025-03-28 13:38:15,240 - __main__ - DEBUG - Processing content with 39 lines
+2025-03-28 13:38:15,240 - __main__ - DEBUG - Found course header: - DSAN 5200: Advanced Data Visualization (Core) with code DSAN 5200
+2025-03-28 13:38:15,240 - __main__ - DEBUG - Found course header: - DSAN 5300: Statistical Learning (Core) with code DSAN 5300
+2025-03-28 13:38:15,240 - __main__ - DEBUG - Saved section for DSAN 5200 with 48 chars
+2025-03-28 13:38:15,240 - __main__ - DEBUG - Found course header: - DSAN 5400: Computational Linguistics – Advanced Python (Elective) with code DSAN 5400
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Saved section for DSAN 5300 with 41 chars
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Found course header: - DSAN 5450: Data Ethics and Policy (Elective) with code DSAN 5450
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Saved section for DSAN 5400 with 68 chars
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Found course header: - DSAN 5500: Data Structures, Objects, and Algorithms in Python (Elective) with code DSAN 5500
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Saved section for DSAN 5450 with 47 chars
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Found course header: - DSAN 5600: Applied Time Series (Elective) with code DSAN 5600
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Saved section for DSAN 5500 with 75 chars
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Found course header: - DSAN 5900: Digital Storytelling (Elective) with code DSAN 5900
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Saved section for DSAN 5600 with 44 chars
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Found course header: - DSAN 6500: Computer Vision Analytics & Generative Image Modeling (Elective) with code DSAN 6500
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Saved section for DSAN 5900 with 45 chars
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Found course header: - DSAN 6550: Adaptive Measurement (Elective) with code DSAN 6550
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Saved section for DSAN 6500 with 78 chars
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Found course header: - DSAN 6600: Neural Networks and Deep Learning (Elective) with code DSAN 6600
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Saved section for DSAN 6550 with 45 chars
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Found course header: - DSAN 6725: Applied Generative AI for AI Developers (Elective) with code DSAN 6725
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Saved section for DSAN 6600 with 58 chars
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Found course header: - DSAN 5650: Causal Inference for Computational Social Science with code DSAN 5650
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Saved section for DSAN 6725 with 79 chars
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Found course header: - DSAN 6400: Network Analytics with code DSAN 6400
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Saved section for DSAN 5650 with 63 chars
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Found course header: - DSAN 5000: Introduction to Data Analytics (Core) with code DSAN 5000
+2025-03-28 13:38:15,241 - __main__ - DEBUG - Saved section for DSAN 6400 with 44 chars
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Found course header: - DSAN 5100: Probabilistic Modeling and Statistical Computing (Core) with code DSAN 5100
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Saved section for DSAN 5000 with 51 chars
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Found course header: - DSAN 5400: Computational Linguistics (Elective) with code DSAN 5400
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Saved section for DSAN 5100 with 69 chars
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Found course header: - DSAN 5550: Data Science and Climate Change (Elective) with code DSAN 5550
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Saved section for DSAN 5400 with 50 chars
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Found course header: - DSAN 5700: Blockchain Technologies in Data Science (Elective) with code DSAN 5700
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Saved section for DSAN 5550 with 56 chars
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Found course header: - DSAN 5800: Advanced Natural Language Processing (Elective) with code DSAN 5800
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Saved section for DSAN 5700 with 64 chars
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Found course header: - DSAN 6000: Big Data and Cloud Computing (Core) with code DSAN 6000
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Saved section for DSAN 5800 with 61 chars
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Found course header: - DSAN 6150: Biological and Biomedical Data Science (Elective) with code DSAN 6150
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Saved section for DSAN 6000 with 49 chars
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Found course header: - DSAN 6300: Database Systems and SQL (Elective) with code DSAN 6300
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Saved section for DSAN 6150 with 63 chars
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Found course header: - DSAN 6600: Neural Nets and Deep Learning (Elective) with code DSAN 6600
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Saved section for DSAN 6300 with 49 chars
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Found course header: - DSAN 6650: Reinforcement Learning (Elective) with code DSAN 6650
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Saved section for DSAN 6600 with 54 chars
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Found course header: - DSAN 6700: Machine Learning App Deployment (Elective) with code DSAN 6700
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Saved section for DSAN 6650 with 47 chars
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Found course header: - DSAN 6750: Geographic Information Systems (Elective) with code DSAN 6750
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Saved section for DSAN 6700 with 56 chars
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Found course header: - DSAN 7000: Capstone Project (Elective) with code DSAN 7000
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Saved section for DSAN 6750 with 55 chars
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Saved final section for DSAN 7000 with 119 chars
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Extracted 25 course sections
+2025-03-28 13:38:15,242 - __main__ - DEBUG - Created specific doc for DSAN 5200
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 5300
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 5400
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 5450
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 5500
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 5600
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 5900
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 6500
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 6550
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 6600
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 6725
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 5650
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 6400
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 5000
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 5100
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 5550
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 5700
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 5800
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 6000
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 6150
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 6300
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 6650
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 6700
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 6750
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Created specific doc for DSAN 7000
+2025-03-28 13:38:15,243 - __main__ - DEBUG - Processing content with 202 lines
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Found course header: ![Students study in the DSAN suite](https://analytics.georgetown.edu/wp-content/uploads/sites/452/2023/10/1-2.png) with code DSAN 45220231012
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Saved final section for DSAN 45220231012 with 2263 chars
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Extracted 1 course sections
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Created specific doc for DSAN 45220231012
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Processing content with 21 lines
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Processing content with 20 lines
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Processing content with 172 lines
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Found mention of DSAN 5000 in non-header content
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Created general entry for DSAN 5000
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Found mention of DSAN 5100 in non-header content
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Created general entry for DSAN 5100
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Extracted 2 course sections
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Created specific doc for DSAN 5000
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Created specific doc for DSAN 5100
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Processing content with 54 lines
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Processing content with 56 lines
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,244 - __main__ - DEBUG - Processing content with 149 lines
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Processing content with 30 lines
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Processing content with 135 lines
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Found course header: ### DSAN 5000: Data Science and Analytics with code DSAN 5000
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Found course header: ### DSAN 5100: Probabilistic Modeling and Statistical Computing with code DSAN 5100
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Saved section for DSAN 5000 with 1075 chars
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Found course header: ### DSAN 5200: Advanced Data Visualization with code DSAN 5200
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Saved section for DSAN 5100 with 1237 chars
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Found course header: Presenting quantitative information in visual form is an essential communication skill for data professionals. This course introduces representation methods and visualization techniques for complex data, drawing on insights from cognitive science and graphic design. Students will obtain an overview of the human visual system, learn to use models for data and for images, and acquire good design practices, such as those using the “grammar of graphics.” Students will use common statistical design tools such as graphic methods in Python3, interactive graphic methods such as Bokeh, Leaflet, and NetworkD3, the R package ggplot2, and Tableau. _Prerequisites: DSAN 5000. 3 credits._ _**Offered in the Spring semester.**_ with code DSAN 5000
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Saved section for DSAN 5200 with 43 chars
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Found course header: ### DSAN 5300: Statistical Learning with code DSAN 5300
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Saved section for DSAN 5000 with 721 chars
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Found course header: Statistical Learning is concerned with algorithms that use statistical techniques to find structure or patterns in given data (unsupervised learning) or use given instances of data to predict outcomes in new cases (supervised learning). A well-known method of this type is linear regression, and this will be covered early in the course. Statistical methods for making discrete predictions (classification) such as logistic regression will also be covered. Special emphasis will be placed on techniques for handling high-dimensional data (i.e. instances with many attributes), including variable selection and dimension reduction. The course will also cover ensemble methods such as bagging and boosting that are often used to improve the results of given classification methods. Unsupervised methods covered in this course include model-based and hierarchical clustering. _Prerequisites: DSAN 5100. 3 credits._ _**Offered in the Spring semester.**_ with code DSAN 5100
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Saved section for DSAN 5300 with 36 chars
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Found course header: ### DSAN 6000: Big Data and Cloud Computing with code DSAN 6000
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Saved section for DSAN 5100 with 950 chars
+2025-03-28 13:38:15,245 - __main__ - DEBUG - Found course header: Today’s data scientists are commonly faced with huge data sets (Big Data) that may arrive at fantastic rates and in a broad variety of formats. This core course addresses the resulting challenges. The course will introduce students to the advantages and limitations of distributed computing and to methods of assessing its impact. Techniques for parallel processing (MapReduce) and their implementation (Hadoop) will be covered, as well as techniques for accessing unstructured data and for handling streaming data. These techniques will be applied to real world examples, using clusters of computational cores and cloud computing. _Prerequisite: Working knowledge of Python and the Unix command line, some knowledge of data structures and DSAN 5000. 3 credits._ _**Offered in the Fall semester.**_ with code DSAN 5000
+2025-03-28 13:38:15,246 - __main__ - DEBUG - Saved section for DSAN 6000 with 44 chars
+2025-03-28 13:38:15,246 - __main__ - DEBUG - Found course header: ### DSAN 5400: Computational Linguistics – Advanced Python with code DSAN 5400
+2025-03-28 13:38:15,246 - __main__ - DEBUG - Saved section for DSAN 5000 with 819 chars
+2025-03-28 13:38:15,246 - __main__ - DEBUG - Found course header: ### DSAN 5450: Data Ethics and Policy with code DSAN 5450
+2025-03-28 13:38:15,246 - __main__ - DEBUG - Saved section for DSAN 5400 with 1455 chars
+2025-03-28 13:38:15,246 - __main__ - DEBUG - Found course header: ### DSAN 5500: Data Structures, Objects, and Algorithms in Python with code DSAN 5500
+2025-03-28 13:38:15,246 - __main__ - DEBUG - Saved section for DSAN 5450 with 1817 chars
+2025-03-28 13:38:15,246 - __main__ - DEBUG - Found course header: ### DSAN 5550: Data Science and Climate Change with code DSAN 5550
+2025-03-28 13:38:15,246 - __main__ - DEBUG - Saved section for DSAN 5500 with 584 chars
+2025-03-28 13:38:15,246 - __main__ - DEBUG - Found course header: Data Science, as a key component of Artificial Intelligence, is helping shape profound changes to society.  An equally forceful phenomenon affecting our world is climate change.  This course will investigate the myriad ways Data Science can be used to address climate change.  This will include aspects of climate change which Data Science is already beginning to tackle, such as mitigating emissions from the five most carbon-intensive societal activities – energy, manufacturing, agriculture / land use, transportation, and buildings / infrastructure.  We will also look at Data Science’s emerging role in areas such as climate modeling, biodiversity conservation, carbon capture, climate mitigation finance, geoengineering, climate ethics, and reducing the carbon footprint of Data Science itself.  We will see how the following Data Science and Machine Learning topics can be used to address climate change: regression, gradient boosting, causal inference, interpretability, optimization, image processing, natural language processing, reinforcement learning, time-series analysis, and several neural network architectures.  Using a variety of existing data sources, students will undertake a final project of their choosing to apply a Data Science technique to an aspect of climate change. _Prerequisite: DSAN 5000. 3 credits._ _**Offered in the Fall semester.**_ with code DSAN 5000
+2025-03-28 13:38:15,246 - __main__ - DEBUG - Saved section for DSAN 5550 with 47 chars
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Found course header: ### DSAN 5600: Applied Time Series for Data Science with code DSAN 5600
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Saved section for DSAN 5000 with 1369 chars
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Found course header: ### DSAN 5700: Blockchain Technologies for Data Science with code DSAN 5700
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Saved section for DSAN 5600 with 2769 chars
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Found course header: ### DSAN 5800: Advanced Natural Language Processing with code DSAN 5800
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Saved section for DSAN 5700 with 1647 chars
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Found course header: _This is an advanced course. Suggested prerequisites are DSAN 5000, DSAN 5100 and DSAN 5400. However, first-year students with the necessary math, statistics, and deep learning background will be considered._ _3 credits._ _**Offered in the Fall semester.**_ with code DSAN 5000
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Saved section for DSAN 5800 with 1219 chars
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Found course header: ### DSAN 5900: Digital Storytelling with code DSAN 5900
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Saved section for DSAN 5000 with 258 chars
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Found course header: ### DSAN 5925: Internship with code DSAN 5925
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Saved section for DSAN 5900 with 1787 chars
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Found course header: ### DSAN 6150: Biological and Biomedical Data Science with code DSAN 6150
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Saved section for DSAN 5925 with 700 chars
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Found course header: We are bombarded everyday with multiple claims of health risks (doing this will ruin your health), new treatments and cures (just take this for 30 days for a new you), and better lifestyle choices. How are these claims made, evaluated and validated using data science? Data drives our knowledge of biology, disease and effective treatments. This data is diverse, complex, large, and in many respects unique. This data drives our understanding of whether risk factors or treatments causally change our health outcomes, whether our genes or our environment affects our health, and decisions about drugs, protocols and public health that affect all of us everyday. In this class we explore this rich, diverse data landscape and the specialized methods needed to make sense of it, leveraging the instructor’s decades-long experience in collaborative epidemiological and biomedical research across academia, government and industry. We will explore designing good experiments to extract causal relationships, and how we might still make valid decisions even in non-ideal settings. We will explore high-dimensional multivariate data and evaluate the validity of finding a “needle in a haystack” biomarker that can be targeted for treatment. We will see how statistical modeling (survival analysis in particular), machine learning, AI, and explainable AI have made an impact in helping us understand this world within. We will see how data-driven decision making using Bayesian analysis works. This journey will take us through real-life applications in bioinformatics (understanding how genes, proteins and other molecular markers affect disease), epidemiology (how do diseases spread and how interventions can prevent it) and clinical research (clinical trials, observational studies, case-control studies). DSAN 5100 is a prerequisite. However, first-year DSAN students with the necessary statistics background will be considered. _3 credits_. _**Offered in the Fall semester.**_ with code DSAN 5100
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Saved section for DSAN 6150 with 54 chars
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Found course header: ### DSAN 6300: Database Systems and SQL with code DSAN 6300
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Saved section for DSAN 5100 with 1976 chars
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Found course header: ### DSAN 6400: Network Analytics with code DSAN 6400
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Saved section for DSAN 6300 with 1212 chars
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Found course header: ### DSAN 6500: Computer Vision & Generative Image Modeling with code DSAN 6500
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Saved section for DSAN 6400 with 1537 chars
+2025-03-28 13:38:15,247 - __main__ - DEBUG - Found course header: ### DSAN 6550: Adaptive Measurement with AI with code DSAN 6550
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Saved section for DSAN 6500 with 1103 chars
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Found course header: ### DSAN 6600: Neural Networks and Advanced Deep Learning with code DSAN 6600
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Saved section for DSAN 6550 with 1803 chars
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Found course header: Neural Networks and Advanced Deep Learning explores both foundational and cutting-edge deep learning techniques. Students start with a short review of core concepts such as feed-forward networks, activation functions, backpropagation, and optimization using TensorFlow and Keras. The course reviews convolutional and recurrent neural networks, auto-encoders, and methods to prevent overfitting. Advanced topics include Transformers and attention mechanisms, Graph Neural Networks, self-supervised and contrastive learning, neural architecture search, adversarial robustness, energy-based models, and neural ODEs. Additionally, the curriculum delves into advanced optimization, neuro-symbolic AI, and bio-inspired deep learning. Various practical applications are covered to equip students with the skills to address complex deep learning challenges across diverse domains.  _Prerequisite: DSAN 5100. 3 credits._ _**Offered in the Fall and Spring semesters.**_ with code DSAN 5100
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Saved section for DSAN 6600 with 58 chars
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Found course header: ### DSAN 6650: Reinforcement Learning with code DSAN 6650
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Saved section for DSAN 5100 with 960 chars
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Found course header: ### DSAN 6700: Machine Learning App Deployment with code DSAN 6700
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Saved section for DSAN 6650 with 1657 chars
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Found course header: This course will focus on gathering data so as to build an ensemble of machine learning methods that can predict, classify, and explore data entered by a client. This is an applied class that will engage in the steps required to create and deploy online a ML application that can be utilized by a client. Topics will include a very brief review of common ML techniques including NB, SVM, DT, RF, ARM, NN, and clustering. APIs will be used to gather, explore, clean, and prepare data for training a ML model ensemble. The model will be deployed via a client-server web application to enable clients to enter data and receive a classification or prediction. _Prerequisite: DSAN 5000. 3 credits._ _**Offered in the Fall semester.**_ with code DSAN 5000
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Saved section for DSAN 6700 with 47 chars
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Found course header: ### DSAN 6725: Applied Generative AI for AI Developers with code DSAN 6725
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Saved section for DSAN 5000 with 730 chars
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Found course header: ### DSAN 6750: Geographic Information Systems (GIS) and Applications with code DSAN 6750
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Saved section for DSAN 6725 with 1187 chars
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Found course header: ### DSAN 6850: NLP with Large Language Models with code DSAN 6850
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Saved section for DSAN 6750 with 754 chars
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Found course header: ### DSAN 7000: Advanced Research Methodologies (Capstone Project) with code DSAN 7000
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Saved section for DSAN 6850 with 1445 chars
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Found course header: The aim of this course is to teach students advanced research methodologies in developing data science research projects as well as effective scientific writing. Topics will include the principles of research questions development, research methods selection, effective results interpretation, effective writing, appropriate journal paper writing styles, peer review, authorship, and communicating scientific ideas to academic and non-academic audiences. In addition, this course will provide guidance on paper publishing, including how to identify an appropriate journal, navigating the selection process, editing, and measuring impact. Ideal outcomes include improved self-editing, development of effective strategies for offering and receiving concise editorial recommendations among peers, and finalizing a research paper to be submitted to academic publications (e.g., journal, conference, research reports, etc.). This course specifically targets students who are interested in learning academic research practices and/or pursuing further education opportunities in a PhD program. The ideal outcome is to make a submission for academic publication, and students are encouraged to submit high-quality papers to academic journals. Although publication cannot be guaranteed, students will experience the learning process of submitting a research paper. _Prerequisites: DSAN 5000, DSAN 5100, DSAN 5300; Knowledge about data science, introductory statistics, statistical learning, and coding experience in R and/or Python._ _3 credits._ _**Offered in the Fall semester.**_ with code DSAN 5000
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Saved section for DSAN 7000 with 66 chars
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Saved final section for DSAN 5000 with 1700 chars
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Extracted 26 course sections
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 5000
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 5100
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 5200
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 5300
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 6000
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 5400
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 5450
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 5500
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 5550
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 5600
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 5700
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 5800
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 5900
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 5925
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 6150
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 6300
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 6400
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 6500
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 6550
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 6600
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 6650
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 6700
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 6725
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 6750
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 6850
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Created specific doc for DSAN 7000
+2025-03-28 13:38:15,248 - __main__ - DEBUG - Processing content with 53 lines
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Processing content with 58 lines
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Found course header: Details about DSAN 5000, 5100, 5200, and 5300 can be found [here](https://analytics.georgetown.edu/program-overview/course-descriptions/#core-courses). with code DSAN 5000
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Found course header: - Math students can take DSAN 5100 instead of MATH 2140; i.e. they can count DSAN 5100 as their math elective instead of MATH 2140, but they cannot get Math credit for both courses. with code DSAN 5100
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Saved section for DSAN 5000 with 1388 chars
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Found course header: - **You will participate in the required, free, self-directed and fully online “Programming in R and Python Bootcamp” as all MS students do. This is generally done the summer before you take DSAN 5000.** with code DSAN 5000
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Saved section for DSAN 5100 with 463 chars
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Saved final section for DSAN 5000 with 331 chars
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Extracted 2 course sections
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Created specific doc for DSAN 5000
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Created specific doc for DSAN 5100
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Processing content with 524 lines
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Processing content with 29 lines
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Processing content with 11 lines
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,249 - __main__ - DEBUG - Processing content with 92 lines
+2025-03-28 13:38:15,250 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,251 - __main__ - DEBUG - Processing content with 37 lines
+2025-03-28 13:38:15,251 - __main__ - DEBUG - Found course header: First-year students in our intro class: DSAN 5000-Data Science and Analytics with code DSAN 5000
+2025-03-28 13:38:15,251 - __main__ - DEBUG - Saved final section for DSAN 5000 with 1554 chars
+2025-03-28 13:38:15,251 - __main__ - DEBUG - Extracted 1 course sections
+2025-03-28 13:38:15,251 - __main__ - DEBUG - Created specific doc for DSAN 5000
+2025-03-28 13:38:15,252 - __main__ - DEBUG - Processing content with 49 lines
+2025-03-28 13:38:15,252 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,252 - __main__ - DEBUG - Processing content with 39 lines
+2025-03-28 13:38:15,252 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,252 - __main__ - DEBUG - Processing content with 41 lines
+2025-03-28 13:38:15,252 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,252 - __main__ - DEBUG - Processing content with 269 lines
+2025-03-28 13:38:15,252 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Processing content with 105 lines
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Processing content with 16 lines
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Processing content with 21 lines
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Processing content with 83 lines
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Processing content with 17 lines
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Processing content with 19 lines
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Processing content with 23 lines
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Processing content with 21 lines
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Processing content with 23 lines
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Processing content with 31 lines
+2025-03-28 13:38:15,253 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,254 - __main__ - DEBUG - Processing content with 65 lines
+2025-03-28 13:38:15,254 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,254 - __main__ - DEBUG - Processing content with 109 lines
+2025-03-28 13:38:15,254 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,254 - __main__ - DEBUG - Processing content with 39 lines
+2025-03-28 13:38:15,254 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,254 - __main__ - DEBUG - Processing content with 13 lines
+2025-03-28 13:38:15,254 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,254 - __main__ - DEBUG - Processing content with 11 lines
+2025-03-28 13:38:15,254 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,254 - __main__ - DEBUG - Processing content with 61 lines
+2025-03-28 13:38:15,257 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,257 - __main__ - DEBUG - Processing content with 19 lines
+2025-03-28 13:38:15,257 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,257 - __main__ - DEBUG - Processing content with 43 lines
+2025-03-28 13:38:15,257 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,257 - __main__ - DEBUG - Processing content with 35 lines
+2025-03-28 13:38:15,257 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,257 - __main__ - DEBUG - Processing content with 59 lines
+2025-03-28 13:38:15,257 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,257 - __main__ - DEBUG - Processing content with 67 lines
+2025-03-28 13:38:15,257 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,257 - __main__ - DEBUG - Processing content with 71 lines
+2025-03-28 13:38:15,258 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,258 - __main__ - DEBUG - Processing content with 23 lines
+2025-03-28 13:38:15,258 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,258 - __main__ - DEBUG - Processing content with 17 lines
+2025-03-28 13:38:15,258 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,258 - __main__ - DEBUG - Processing content with 11 lines
+2025-03-28 13:38:15,258 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,258 - __main__ - DEBUG - Processing content with 49 lines
+2025-03-28 13:38:15,258 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,258 - __main__ - DEBUG - Processing content with 45 lines
+2025-03-28 13:38:15,258 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,258 - __main__ - DEBUG - Processing content with 93 lines
+2025-03-28 13:38:15,258 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,258 - __main__ - DEBUG - Processing content with 30 lines
+2025-03-28 13:38:15,259 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,259 - __main__ - DEBUG - Processing content with 45 lines
+2025-03-28 13:38:15,259 - __main__ - DEBUG - Extracted 0 course sections
+2025-03-28 13:38:15,259 - __main__ - DEBUG - Created consolidated doc for DSAN 5200
+2025-03-28 13:38:15,259 - __main__ - DEBUG - Created consolidated doc for DSAN 5300
+2025-03-28 13:38:15,259 - __main__ - DEBUG - Created consolidated doc for DSAN 5400
+2025-03-28 13:38:15,259 - __main__ - DEBUG - Created consolidated doc for DSAN 5450
+2025-03-28 13:38:15,259 - __main__ - DEBUG - Created consolidated doc for DSAN 5500
+2025-03-28 13:38:15,259 - __main__ - DEBUG - Created consolidated doc for DSAN 5600
+2025-03-28 13:38:15,260 - __main__ - DEBUG - Created consolidated doc for DSAN 5900
+2025-03-28 13:38:15,260 - __main__ - DEBUG - Created consolidated doc for DSAN 6500
+2025-03-28 13:38:15,260 - __main__ - DEBUG - Created consolidated doc for DSAN 6550
+2025-03-28 13:38:15,260 - __main__ - DEBUG - Created consolidated doc for DSAN 6600
+2025-03-28 13:38:15,260 - __main__ - DEBUG - Created consolidated doc for DSAN 6725
+2025-03-28 13:38:15,260 - __main__ - DEBUG - Created consolidated doc for DSAN 5650
+2025-03-28 13:38:15,260 - __main__ - DEBUG - Created consolidated doc for DSAN 6400
+2025-03-28 13:38:15,260 - __main__ - DEBUG - Created consolidated doc for DSAN 5000
+2025-03-28 13:38:15,260 - __main__ - DEBUG - Created consolidated doc for DSAN 5100
+2025-03-28 13:38:15,260 - __main__ - DEBUG - Created consolidated doc for DSAN 5550
+2025-03-28 13:38:15,260 - __main__ - DEBUG - Created consolidated doc for DSAN 5700
+2025-03-28 13:38:15,261 - __main__ - DEBUG - Created consolidated doc for DSAN 5800
+2025-03-28 13:38:15,261 - __main__ - DEBUG - Created consolidated doc for DSAN 6000
+2025-03-28 13:38:15,261 - __main__ - DEBUG - Created consolidated doc for DSAN 6150
+2025-03-28 13:38:15,261 - __main__ - DEBUG - Created consolidated doc for DSAN 6300
+2025-03-28 13:38:15,261 - __main__ - DEBUG - Created consolidated doc for DSAN 6650
+2025-03-28 13:38:15,261 - __main__ - DEBUG - Created consolidated doc for DSAN 6700
+2025-03-28 13:38:15,261 - __main__ - DEBUG - Created consolidated doc for DSAN 6750
+2025-03-28 13:38:15,261 - __main__ - DEBUG - Created consolidated doc for DSAN 7000
+2025-03-28 13:38:15,261 - __main__ - DEBUG - Created consolidated doc for DSAN 45220231012
+2025-03-28 13:38:15,261 - __main__ - DEBUG - Created consolidated doc for DSAN 5925
+2025-03-28 13:38:15,261 - __main__ - DEBUG - Created consolidated doc for DSAN 6850
+2025-03-28 13:38:15,261 - __main__ - INFO - Created a total of 79 enhanced documents
+2025-03-28 13:38:15,261 - __main__ - INFO - Saving processed data to /Users/isfarbaset/Desktop/gtown-course-finder/data/processed_documents.json
+2025-03-28 13:38:15,274 - __main__ - INFO - Saved processed data successfully
+2025-03-28 13:38:15,274 - __main__ - INFO - Generating embedding for text of length 1617
+2025-03-28 13:38:15,522 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:15,522 - __main__ - INFO - Generating embedding for text of length 11274
+2025-03-28 13:38:15,638 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:15,638 - __main__ - INFO - Generating embedding for text of length 3259
+2025-03-28 13:38:15,741 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:15,742 - __main__ - INFO - Generating embedding for text of length 1020
+2025-03-28 13:38:15,774 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:15,774 - __main__ - INFO - Generating embedding for text of length 5728
+2025-03-28 13:38:15,874 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:15,875 - __main__ - INFO - Generating embedding for text of length 2787
+2025-03-28 13:38:15,972 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:15,972 - __main__ - INFO - Generating embedding for text of length 3076
+2025-03-28 13:38:16,073 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:16,073 - __main__ - INFO - Generating embedding for text of length 11160
+2025-03-28 13:38:16,176 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:16,176 - __main__ - INFO - Generating embedding for text of length 3037
+2025-03-28 13:38:16,272 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:16,272 - __main__ - INFO - Generating embedding for text of length 35525
+2025-03-28 13:38:16,383 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:16,383 - __main__ - INFO - Generating embedding for text of length 1181
+2025-03-28 13:38:16,461 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:16,461 - __main__ - INFO - Generating embedding for text of length 5594
+2025-03-28 13:38:16,559 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:16,559 - __main__ - INFO - Generating embedding for text of length 21003
+2025-03-28 13:38:16,661 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:16,661 - __main__ - INFO - Generating embedding for text of length 2850
+2025-03-28 13:38:16,759 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:16,759 - __main__ - INFO - Generating embedding for text of length 2815
+2025-03-28 13:38:16,855 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:16,855 - __main__ - INFO - Generating embedding for text of length 9459
+2025-03-28 13:38:16,952 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:16,952 - __main__ - INFO - Generating embedding for text of length 3012
+2025-03-28 13:38:17,047 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:17,047 - __main__ - INFO - Generating embedding for text of length 6085
+2025-03-28 13:38:17,142 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:17,143 - __main__ - INFO - Generating embedding for text of length 4519
+2025-03-28 13:38:17,238 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:17,239 - __main__ - INFO - Generating embedding for text of length 1142
+2025-03-28 13:38:17,285 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:17,285 - __main__ - INFO - Generating embedding for text of length 25299
+2025-03-28 13:38:17,388 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:17,389 - __main__ - INFO - Generating embedding for text of length 5001
+2025-03-28 13:38:17,481 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:17,481 - __main__ - INFO - Generating embedding for text of length 1465
+2025-03-28 13:38:17,527 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:17,527 - __main__ - INFO - Generating embedding for text of length 1180
+2025-03-28 13:38:17,570 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:17,570 - __main__ - INFO - Generating embedding for text of length 5306
+2025-03-28 13:38:17,662 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:17,662 - __main__ - INFO - Generating embedding for text of length 6899
+2025-03-28 13:38:17,757 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:17,758 - __main__ - INFO - Generating embedding for text of length 2360
+2025-03-28 13:38:17,853 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:17,853 - __main__ - INFO - Generating embedding for text of length 4110
+2025-03-28 13:38:17,947 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:17,947 - __main__ - INFO - Generating embedding for text of length 3495
+2025-03-28 13:38:18,041 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:18,041 - __main__ - INFO - Generating embedding for text of length 980
+2025-03-28 13:38:18,085 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:18,086 - __main__ - INFO - Generating embedding for text of length 2897
+2025-03-28 13:38:18,179 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:18,179 - __main__ - INFO - Generating embedding for text of length 3688
+2025-03-28 13:38:18,273 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:18,273 - __main__ - INFO - Generating embedding for text of length 4296
+2025-03-28 13:38:18,366 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:18,366 - __main__ - INFO - Generating embedding for text of length 1657
+2025-03-28 13:38:18,450 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:18,450 - __main__ - INFO - Generating embedding for text of length 1358
+2025-03-28 13:38:18,511 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:18,511 - __main__ - INFO - Generating embedding for text of length 817
+2025-03-28 13:38:18,542 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:18,542 - __main__ - INFO - Generating embedding for text of length 3247
+2025-03-28 13:38:18,634 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:18,634 - __main__ - INFO - Generating embedding for text of length 1448
+2025-03-28 13:38:18,709 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:18,709 - __main__ - INFO - Generating embedding for text of length 3943
+2025-03-28 13:38:18,804 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:18,804 - __main__ - INFO - Generating embedding for text of length 1573
+2025-03-28 13:38:18,882 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:18,882 - __main__ - INFO - Generating embedding for text of length 2913
+2025-03-28 13:38:18,977 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:18,977 - __main__ - INFO - Generating embedding for text of length 2470
+2025-03-28 13:38:19,069 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,069 - __main__ - INFO - Generating embedding for text of length 2829
+2025-03-28 13:38:19,161 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,161 - __main__ - INFO - Generating embedding for text of length 1755
+2025-03-28 13:38:19,236 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,236 - __main__ - INFO - Generating embedding for text of length 1575
+2025-03-28 13:38:19,290 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,290 - __main__ - INFO - Generating embedding for text of length 529
+2025-03-28 13:38:19,310 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,310 - __main__ - INFO - Generating embedding for text of length 2845
+2025-03-28 13:38:19,403 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,403 - __main__ - INFO - Generating embedding for text of length 1529
+2025-03-28 13:38:19,493 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,493 - __main__ - INFO - Generating embedding for text of length 4025
+2025-03-28 13:38:19,585 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,586 - __main__ - INFO - Generating embedding for text of length 1485
+2025-03-28 13:38:19,670 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,670 - __main__ - INFO - Generating embedding for text of length 2096
+2025-03-28 13:38:19,760 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,761 - __main__ - INFO - Generating embedding for text of length 108
+2025-03-28 13:38:19,766 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,766 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:19,773 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,773 - __main__ - INFO - Generating embedding for text of length 94
+2025-03-28 13:38:19,780 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,780 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:19,785 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,785 - __main__ - INFO - Generating embedding for text of length 1522
+2025-03-28 13:38:19,827 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,827 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:19,832 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,832 - __main__ - INFO - Generating embedding for text of length 1881
+2025-03-28 13:38:19,888 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,888 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:19,893 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,894 - __main__ - INFO - Generating embedding for text of length 676
+2025-03-28 13:38:19,913 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,913 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:19,918 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:19,919 - __main__ - INFO - Generating embedding for text of length 2830
+2025-03-28 13:38:20,011 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,012 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,017 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,017 - __main__ - INFO - Generating embedding for text of length 1849
+2025-03-28 13:38:20,071 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,071 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,076 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,076 - __main__ - INFO - Generating embedding for text of length 1198
+2025-03-28 13:38:20,112 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,112 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,117 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,117 - __main__ - INFO - Generating embedding for text of length 1865
+2025-03-28 13:38:20,182 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,182 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,187 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,187 - __main__ - INFO - Generating embedding for text of length 129
+2025-03-28 13:38:20,195 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,195 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,200 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,200 - __main__ - INFO - Generating embedding for text of length 1283
+2025-03-28 13:38:20,243 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,243 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,248 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,248 - __main__ - INFO - Generating embedding for text of length 78
+2025-03-28 13:38:20,254 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,254 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,263 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,263 - __main__ - INFO - Generating embedding for text of length 1598
+2025-03-28 13:38:20,309 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,309 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,314 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,314 - __main__ - INFO - Generating embedding for text of length 9387
+2025-03-28 13:38:20,410 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,410 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,415 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,415 - __main__ - INFO - Generating embedding for text of length 7241
+2025-03-28 13:38:20,510 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,510 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,515 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,516 - __main__ - INFO - Generating embedding for text of length 120
+2025-03-28 13:38:20,522 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,522 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,528 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,528 - __main__ - INFO - Generating embedding for text of length 1728
+2025-03-28 13:38:20,582 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,582 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,587 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,588 - __main__ - INFO - Generating embedding for text of length 1297
+2025-03-28 13:38:20,622 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,622 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,627 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,627 - __main__ - INFO - Generating embedding for text of length 110
+2025-03-28 13:38:20,634 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,634 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,639 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,639 - __main__ - INFO - Generating embedding for text of length 134
+2025-03-28 13:38:20,647 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,647 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,652 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,652 - __main__ - INFO - Generating embedding for text of length 1278
+2025-03-28 13:38:20,687 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,688 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,693 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,693 - __main__ - INFO - Generating embedding for text of length 1721
+2025-03-28 13:38:20,742 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,742 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,747 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,747 - __main__ - INFO - Generating embedding for text of length 120
+2025-03-28 13:38:20,754 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,755 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,760 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,760 - __main__ - INFO - Generating embedding for text of length 826
+2025-03-28 13:38:20,784 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,784 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,789 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,789 - __main__ - INFO - Generating embedding for text of length 202
+2025-03-28 13:38:20,797 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,798 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,803 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,803 - __main__ - INFO - Generating embedding for text of length 2285
+2025-03-28 13:38:20,896 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,896 - __main__ - INFO - Generating embedding for text of length 30
+2025-03-28 13:38:20,902 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,902 - __main__ - INFO - Generating embedding for text of length 715
+2025-03-28 13:38:20,920 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,920 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,925 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,925 - __main__ - INFO - Generating embedding for text of length 1460
+2025-03-28 13:38:20,971 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,971 - __main__ - INFO - Generating embedding for text of length 23
+2025-03-28 13:38:20,976 - __main__ - INFO - Embedding generated successfully with shape (1, 384)
+2025-03-28 13:38:20,977 - __main__ - INFO - Total embeddings generated: 107
+2025-03-28 13:38:20,977 - __main__ - INFO - Saving FAISS index to /Users/isfarbaset/Desktop/gtown-course-finder/data/dsan_faiss.index
+2025-03-28 13:38:20,978 - __main__ - INFO - FAISS index saved successfully
+2025-03-28 13:38:20,978 - __main__ - INFO - Number of documents indexed: 107
+2025-03-28 13:38:20,978 - __main__ - INFO - Saving documents mapping to /Users/isfarbaset/Desktop/gtown-course-finder/data/documents_mapping.json
+2025-03-28 13:38:20,981 - __main__ - INFO - Documents mapping saved successfully
+2025-03-28 13:38:20,981 - __main__ - INFO - Indexing completed successfully
