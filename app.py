@@ -5,7 +5,7 @@ import re
 
 # Set page configuration
 st.set_page_config(
-    page_title="Georgetown Course Agent",
+    page_title="Georgetown DSAN Program Agent",
     page_icon="🐶",  # Bulldog emoji (closest to Hoya mascot)
     layout="centered"
 )
@@ -73,8 +73,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # App title and description
-st.title("Georgetown Course Agent")
-st.markdown("Ask questions about Georgetown University courses, departments, and programs. You can also ask follow-up questions about courses you've already inquired about.")
+st.title("Georgetown DSAN Program Agent")
+st.markdown("Ask questions about Georgetown University's Data Science and Analytics (DSAN) program. You can also ask follow-up questions about information you've already inquired about.")
 
 # Initialize session state variables
 if 'messages' not in st.session_state:
@@ -83,8 +83,10 @@ if 'pending_question' not in st.session_state:
     st.session_state.pending_question = None
 if 'awaiting_response' not in st.session_state:
     st.session_state.awaiting_response = False
+if 'thread_id' not in st.session_state:
+    st.session_state.thread_id = 0
 
-# API endpoint 
+# API endpoint - updated to match server.py
 API_URL = "http://localhost:8000/generate"
 
 # Define a helper function for rerunning safely
@@ -128,23 +130,36 @@ def stream_response(question):
     full_response = ""
     
     try:
-        payload = {"question": question}
-        with st.spinner("Searching for course information..."):
+        # Updated payload to include thread_id for conversation memory
+        payload = {
+            "question": question,
+            "thread_id": st.session_state.thread_id
+        }
+        
+        with st.spinner("Searching for DSAN program information..."):
             response = requests.post(API_URL, json=payload)
             if response.status_code == 200:
                 result = response.json()
-                # Expecting response format: {"answer": "..."}
-                ai_response = result["answer"]
-                words = ai_response.split()
-                # Simulate streaming by showing a few words at a time
-                for i in range(0, len(words), 3):
-                    chunk_size = min(3, len(words) - i)
-                    full_response += " ".join(words[i:i+chunk_size]) + " "
-                    if i % 9 == 0 or i >= len(words) - 3:
-                        formatted_response = format_message(full_response)
-                        message_placeholder.markdown(f'<div class="assistant-message">{formatted_response}</div>', unsafe_allow_html=True)
-                        time.sleep(0.1)
-                st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                # Updated to handle the new response format
+                outputs = result.get("result", [])
+                
+                # Find the AI's response (it will be the last 'ai' message)
+                ai_messages = [msg for msg in outputs if msg["role"] == "ai"]
+                if ai_messages:
+                    ai_response = ai_messages[-1]["content"]
+                    
+                    words = ai_response.split()
+                    # Simulate streaming by showing a few words at a time
+                    for i in range(0, len(words), 3):
+                        chunk_size = min(3, len(words) - i)
+                        full_response += " ".join(words[i:i+chunk_size]) + " "
+                        if i % 9 == 0 or i >= len(words) - 3:
+                            formatted_response = format_message(full_response)
+                            message_placeholder.markdown(f'<div class="assistant-message">{formatted_response}</div>', unsafe_allow_html=True)
+                            time.sleep(0.1)
+                    st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                else:
+                    message_placeholder.markdown(f'<div class="system-message">No response from the assistant.</div>', unsafe_allow_html=True)
             else:
                 message_placeholder.markdown(f'<div class="system-message">Error: {response.status_code} - {response.text}</div>', unsafe_allow_html=True)
     except Exception as e:
@@ -172,7 +187,7 @@ def main():
                 user_input = st.text_input(
                     "Continue the conversation:", 
                     key="user_question", 
-                    placeholder="Ask about courses at Georgetown..."
+                    placeholder="Ask about the DSAN program at Georgetown..."
                 )
                 col1, col2 = st.columns([4, 1])
                 with col2:
@@ -191,13 +206,15 @@ def main():
     if not st.session_state.awaiting_response:
         if st.button("Start New Conversation"):
             st.session_state.messages = []
+            # Generate a new thread ID when starting a new conversation
+            st.session_state.thread_id = st.session_state.get('thread_id', 0) + 1
             safe_rerun()
 
 # Footer with small print
 st.markdown("""
 <div class="small-text">
-<p>This agent provides information about Georgetown University courses based on publicly available data. 
-Information may not be complete or up-to-date. Always verify course details with official Georgetown resources.</p>
+<p>This agent provides information about Georgetown University's DSAN program based on publicly available data. 
+Information may not be complete or up-to-date. Always verify details with official Georgetown resources.</p>
 </div>
 """, unsafe_allow_html=True)
 
