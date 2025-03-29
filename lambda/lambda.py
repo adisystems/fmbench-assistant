@@ -8,15 +8,17 @@ import os
 import json
 import time
 import logging
+import boto3
 from pathlib import Path
 from typing import Dict, Any, List, Tuple, Optional
 from pydantic import BaseModel, Field
+from starlette.requests import Request
 
 # LangChain & LangGraph
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.tools.retriever import create_retriever_tool
-from langchain.agents import create_react_agent
+from langchain_core.tools import create_retriever_tool
+from langchain.agents import AgentExecutor, create_react_agent
 from langchain_core.agents import AgentAction, AgentFinish
 from langgraph.graph import END, StateGraph
 from langchain_core.runnables import RunnablePassthrough
@@ -24,59 +26,28 @@ from langchain_core.runnables import RunnablePassthrough
 # Vector Store & Embeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from langchain_community.chat_message_histories import DynamoDBChatMessageHistory
-from langchain_aws import ChatBedrockConverse
-from langchain_aws.embeddings.bedrock import BedrockEmbeddings
+from langchain_community.chat_message_histories import (
+    DynamoDBChatMessageHistory,
+)
+from langchain_aws import ChatBedrock
+from langchain_aws.embeddings import BedrockEmbeddings
 
-# AWS & FastAPI
-import boto3
+# FastAPI & AWS Lambda
 from fastapi import FastAPI
-from pydantic import BaseModel
-from Magnum import Magnum
-from dotenv import load_dotenv
+from mangum import Mangum
+from langchain_core.documents import Document
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Initialize logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
-# Load environment variables
-env_path = Path(__file__).resolve().parent.parent / '.env'
-try:
-    load_dotenv(dotenv_path=env_path)
-except Exception as e:
-    logger.error(f"Error loading .env file: {str(e)}")
-
-# AWS Service Setup
-region = "us-east-1"
-bedrock_client = boto3.client("bedrock-runtime", region_name=region)
-dynamodb = boto3.resource('dynamodb', region_name=region)
-
-# DynamoDB Setup
-table_name = 'DSANChatHistory'
-try:
-    dynamodb.create_table(
-        TableName=table_name,
-        KeySchema=[
-            {'AttributeName': 'SessionId', 'KeyType': 'HASH'}
-        ],
-        AttributeDefinitions=[
-            {'AttributeName': 'SessionId', 'AttributeType': 'S'}
-        ],
-        BillingMode='PAY_PER_REQUEST'
-    ).wait_until_exists()
-    logger.info(f"Created table {table_name}")
-except dynamodb.meta.client.exceptions.ResourceInUseException:
-    logger.info(f"Table {table_name} already exists")
-
-class AgentState(BaseModel):
-    """State for agent execution."""
-    messages: List[Dict] = Field(default_factory=list)
-    chat_history: List[Tuple[str, str]] = Field(default_factory=list)
-    session_id: str
-    next_step_id: str = Field(default="agent")
+# AWS Clients
+region = os.environ.get("AWS_REGION", "us-east-1")
+table_name = "dsan-chat-history"
+client = boto3.client("bedrock-runtime", region_name='us-east-1')
 
 def get_message_history(session_id: str) -> DynamoDBChatMessageHistory:
-    """Get or create a new chat message history for the session."""
+    """Initialize DynamoDB chat message history."""
     return DynamoDBChatMessageHistory(
         table_name=table_name,
         session_id=session_id,
@@ -84,12 +55,8 @@ def get_message_history(session_id: str) -> DynamoDBChatMessageHistory:
         ttl=24 * 60 * 60,  # 24 hour TTL
         history_size=100  # Keep last 100 messages
     )
+llm = ChatBedrock(model_id='us.anthropic.claude-3-5-sonnet-20241022-v2:0', client=client)
 
-# Initialize LLM and Load Documents
-llm = ChatBedrockConverse(
-    client=bedrock_client,
-    model="us.anthropic.claude-3-5-sonnet-20241022-v2:0"
-)
 
 data_file = Path(__file__).resolve().parent.parent / "data" / "documents_1.json"
 documents_data = json.loads(data_file.read_text())
@@ -144,6 +111,13 @@ agent_kwargs = {
 
 agent_runnable = create_react_agent(llm, [retriever_tool], prompt)
 
+class AgentState(BaseModel):
+    """State for the agent workflow."""
+    messages: List[HumanMessage]
+    chat_history: List[Tuple[str, str]]
+    session_id: str
+    next_step_id: Optional[str] = None
+
 def agent_step(state: AgentState) -> AgentState:
     """Execute one step of the agent."""
     messages = state.messages
@@ -183,11 +157,12 @@ class QuestionRequest(BaseModel):
     session_id: str
 
 @app.post("/generate")
-async def generate_answer(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+async def generate_answer(request: Request) -> Dict[str, Any]:
     """Generate an answer using ReAct agent with chat history."""
     try:
         # Parse request body from event
-        body = json.loads(event['body']) if isinstance(event.get('body'), str) else event.get('body', {})
+        body = request.scope["aws.event"]
+        logger.info(f"Received request: {body}")
         question = body.get('question')
         session_id = body.get('session_id')
         
@@ -211,11 +186,15 @@ async def generate_answer(event: Dict[str, Any], context: Any) -> Dict[str, Any]
         final_state = chain.invoke(state)
         answer = final_state.chat_history[-1][1] if final_state.chat_history else "I couldn't generate an answer."
         
+        # Get AWS Lambda context from request if available
+        context = request.scope.get("aws.context")
+        request_id = context.aws_request_id if context else None
+        
         return {
             'statusCode': 200,
             'body': json.dumps({
                 'answer': answer,
-                'request_id': context.aws_request_id if context else None,
+                'request_id': request_id,
                 'session_id': session_id
             })
         }
@@ -236,6 +215,6 @@ async def generate_answer(event: Dict[str, Any], context: Any) -> Dict[str, Any]
 handler = Mangum(
     app,
     lifespan="auto",
-    api_gateway_base_path="/",
+    api_gateway_base_path="/generate",
     text_mime_types=["application/json"]
 )
