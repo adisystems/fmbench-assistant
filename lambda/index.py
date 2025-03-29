@@ -1,5 +1,4 @@
-from server import app, generate_route
-from fastapi import Request
+from lambda.lambda import app, generate_route
 import json
 import asyncio
 
