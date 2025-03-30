@@ -1,17 +1,27 @@
-import os
-import time
-import sys
 import json
 import boto3
 import logging
 from pathlib import Path
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import RedirectResponse
-from pydantic import BaseModel
-from colorama import init, Fore, Style
-from dotenv import load_dotenv
-from starlette.requests import Request
 from mangum import Mangum
+from dotenv import load_dotenv
+from botocore.config import Config
+from pydantic import BaseModel, Field
+from langchain.schema import Document
+from langchain_core.tools import tool
+from starlette.requests import Request
+from colorama import init, Fore, Style
+from fastapi import FastAPI, HTTPException
+from typing import List, Dict, Any, Optional
+from langchain_aws import ChatBedrockConverse
+from fastapi.responses import RedirectResponse
+from langgraph.prebuilt import create_react_agent
+from langchain_community.vectorstores import FAISS
+from langchain.chains import create_retrieval_chain
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_aws.embeddings.bedrock import BedrockEmbeddings
+from langchain_core.messages import HumanMessage, SystemMessage
+from langchain.chains.combine_documents import create_stuff_documents_chain
+
 
 # ----------------------------
 # Setup Logging with Colorama
@@ -37,20 +47,25 @@ class ColoredFormatter(logging.Formatter):
             record.msg = "\n".join(formatted_messages)
         return super().format(record)
 
+# Create logger
 logger = logging.getLogger(__name__)
-handler = logging.StreamHandler()
-handler.setFormatter(ColoredFormatter("%(message)s"))
-logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-# ----------------------------
-# FastAPI App Initialization
-# ----------------------------
-app = FastAPI(title="Georgetown DSAN Program Information Agent")
+# Clear existing handlers to avoid duplicates
+if logger.handlers:
+    logger.handlers.clear()
 
-@app.get("/")
-async def redirect_root_to_docs():
-    return RedirectResponse("/docs")
+# Custom formatter with all requested fields separated by commas
+formatter = logging.Formatter(
+    "%(asctime)s,%(levelname)s,%(process)d,%(filename)s,%(lineno)d,%(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S.%f"
+)
+
+# Add handler with the custom formatter
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
 
 # ----------------------------
 # Load Environment Variables
@@ -61,181 +76,249 @@ try:
 except Exception as e:
     logging.error("Error loading .env file: " + str(e))
 
-# ----------------------------
-# DSAN RAG Setup
-# ----------------------------
-region = "us-west-2"
-bedrock_client = boto3.client("bedrock-runtime", region_name=region)
+class DSANRagSetup(BaseModel):
+    """
+    Pydantic model for DSAN RAG Setup that encapsulates the entire configuration and setup process
+    """
+    region: str = Field(default="us-east-1", description="AWS region to use for Amazon Bedrock")
+    data_file_path: Path = Field(default=Path("data/documents_1.json"), description="Path to the documents data file")
+    response_model_id: str = Field(default="us.amazon.nova-micro-v1:0", description="Bedrock model ID to use")
+    embedding_model_id: str = Field(default="amazon.titan-embed-text-v1", description="Amazon Bedrock embedding model to use")
+    retriever_k: int = Field(default=5, description="Number of documents to retrieve")
+    
+    # These will be initialized in the setup method
+    bedrock_client: Optional[Any] = Field(default=None, exclude=True)
+    llm: Optional[Any] = Field(default=None, exclude=True)
+    documents: List[Document] = Field(default_factory=list, exclude=True)
+    vectorstore: Optional[Any] = Field(default=None, exclude=True)
+    retriever: Optional[Any] = Field(default=None, exclude=True)
+    rag_chain: Optional[Any] = Field(default=None, exclude=True)
+    
+    # Configure logger
+    logger: logging.Logger = Field(default_factory=lambda: logging.getLogger(__name__), exclude=True)
+    
+    class Config:
+        arbitrary_types_allowed = True
+    
+    def setup_logger(self):
+        """Set up the logger with proper formatting"""
+        # Clear existing handlers to avoid duplicates
+        if self.logger.handlers:
+            self.logger.handlers.clear()
+        
+        # Custom formatter with all requested fields separated by commas
+        formatter = logging.Formatter(
+            "%(asctime)s,%(levelname)s,%(process)d,%(filename)s,%(lineno)d,%(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S.%f"
+        )
+        
+        # Add handler with the custom formatter
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
+        self.logger.setLevel(logging.INFO)
+        
+        return self.logger
+        
+    def setup(self):
+        """Set up the RAG system with all components"""
+        # Setup logger first
+        self.setup_logger()
+        
+        # Initialize Bedrock client
+        config = Config(
+            retries = {
+                'max_attempts': 10,
+                'mode': 'adaptive'
+            }
+        )
+        self.bedrock_client = boto3.client("bedrock-runtime", region_name=self.region, config=config)
+        
+        # Initialize the LLM
+        self.llm = ChatBedrockConverse(
+            client=self.bedrock_client, 
+            model=self.response_model_id
+        )
+        
+        # Load documents
+        documents_data = json.loads(self.data_file_path.read_text())
+        self.logger.info(f"Loaded {len(documents_data)} documents from {self.data_file_path}")
+        
+        # Convert to Document objects
+        self.documents = [
+            Document(
+                page_content=doc["markdown"], 
+                metadata=doc.get("metadata", {})
+            ) for doc in documents_data
+        ]
+        
+        # Initialize embeddings model
+        embeddings_model = BedrockEmbeddings(
+            client=self.bedrock_client, 
+            model_id=self.embedding_model_id
+        )
+        
+        # Create vector store and retriever
+        self.vectorstore = FAISS.from_documents(
+            documents=self.documents, 
+            embedding=embeddings_model
+        )
+        
+        self.retriever = self.vectorstore.as_retriever(
+            search_kwargs={'k': self.retriever_k}
+        )
+        
+        # Create prompt template
+        system_prompt = (
+            "You are a friendly and helpful AI assistant that answers questions about the "
+            "Data Science & Analytics (DSAN) program at Georgetown University. "
+            "Use the provided context to answer the question concisely. "
+            "If you don't know, say 'I don't know'.\n\n"
+            "{context}"
+        )
+        
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", system_prompt),
+            ("human", "{input}")
+        ])
+        
+        # Create the chain
+        qa_chain = create_stuff_documents_chain(self.llm, prompt)
+        self.rag_chain = create_retrieval_chain(self.retriever, qa_chain)
+        
+        self.logger.info("RAG setup complete")
+        return self
+    
+    def query(self, question: str) -> Dict[str, Any]:
+        """Run a query through the RAG system"""
+        if not self.rag_chain:
+            self.logger.warning("RAG chain not initialized, running setup first")
+            self.setup()
+            
+        self.logger.info(f"Processing query: {question}")
+        result = self.rag_chain.invoke({"input": question})
+        return result
+    
 
-from langchain_aws import ChatBedrockConverse
-llm = ChatBedrockConverse(client=bedrock_client, model="us.anthropic.claude-3-5-sonnet-20241022-v2:0")
 
-# Load documents
-data_file = Path("data/documents_1.json")
-documents_data = json.loads(data_file.read_text())
-logger.info(f"Loaded {len(documents_data)} documents from {data_file}")
-
-from langchain.schema import Document
-documents = [Document(page_content=doc["markdown"], metadata=doc.get("metadata", {})) for doc in documents_data]
-
-from langchain_aws.embeddings.bedrock import BedrockEmbeddings
-embeddings_model = BedrockEmbeddings(client=bedrock_client, model_id="amazon.titan-embed-text-v1")
-
-from langchain_community.vectorstores import FAISS
-vectorstore = FAISS.from_documents(documents=documents, embedding=embeddings_model)
-retriever = vectorstore.as_retriever(search_kwargs={'k': 5})
-
-from langchain_core.prompts import ChatPromptTemplate
-system_prompt = (
-    "You are an assistant that answers questions about the DSAN program at Georgetown University. "
-    "Use the provided context to answer the question concisely. If you don't know, say 'I don't know'.\n\n"
-    "{context}"
-)
-prompt = ChatPromptTemplate.from_messages([
-    ("system", system_prompt),
-    ("human", "{input}")
-])
-
-from langchain.chains.combine_documents import create_stuff_documents_chain
-qa_chain = create_stuff_documents_chain(llm, prompt)
-
-from langchain.chains import create_retrieval_chain
-rag_chain = create_retrieval_chain(retriever, qa_chain)
+# Global instance of the RAG setup
+_rag_system = None
+_react_agent = None
 
 # ----------------------------
 # Tool Definition
 # ----------------------------
-from langchain_core.tools import tool
-
 @tool
-def get_info(question: str) -> str:
+def get_dsan_info(
+    question: str = "What is the DSAN program?"
+) -> Dict[str, Any]:
     """
-    Answer questions using Georgetown DSAN documentation.
+    Retrieves information about Georgetown's Data Science & Analytics (DSAN) program from official documentation. 
+    Use this tool for questions about courses, requirements, faculty, admissions, or program details.
+    
+    Args:
+        question: A clear, specific question about Georgetown's Data Science & Analytics program,
+                 such as course offerings, degree requirements, application processes, or faculty.
+                 
+    Returns:
+        A dictionary containing the answer and additional context from the documentation.
     """
-    result = rag_chain.invoke({"input": question})
-    return result["answer"]
+    global _rag_system
+    
+    # Initialize the RAG system if it hasn't been set up yet
+    if _rag_system is None:        
+        _rag_system = DSANRagSetup().setup()
+        
+    # Use the RAG system to answer the question
+    result = _rag_system.query(question)
+    return result
 
-tools = [get_info]
+tools = [get_dsan_info]
 
 # ----------------------------
 # Agent Setup
 # ----------------------------
-from langgraph.prebuilt import create_react_agent
-from langchain_core.messages import HumanMessage, SystemMessage
-
 SYSTEM_PROMPT = (
     "You are a helpful academic assistant for Georgetown University's DSAN program. "
     "Use the available tools to answer user questions about the program."
 )
 
 conversation_memory = {}
+class GenerateRequest(BaseModel):
+    question: str = Field(..., description="The question to answer")
+    region: str = Field(default="us-east-1", description="AWS region for Bedrock")
+    model_id: str = Field(
+        default="us.amazon.nova-lite-v1:0", 
+        description="Bedrock model ID to use"
+    )
+    thread_id: Optional[int] = Field(
+        default=0, 
+        description="Conversation thread ID for maintaining chat history"
+    )
+
+class MessageOutput(BaseModel):
+    role: str = Field(..., description="Role of the message sender (system, human, ai)")
+    content: str = Field(..., description="Content of the message")
+
+class GenerateResponse(BaseModel):
+    result: List[MessageOutput] = Field(..., description="List of messages in the conversation")
+
 
 # ----------------------------
-# Request Model
+# FastAPI App Initialization
 # ----------------------------
-class QuestionRequest(BaseModel):
-    question: str
-    thread_id: int = 0  # Default thread_id if not provided
+app = FastAPI(title="Georgetown University DSAN Program Information Agent")
 
-# ----------------------------
-# Agent Endpoint
-# ----------------------------
-@app.post("/generate")
-async def generate_answer(request: Request):
-    """Generate an answer using ReAct agent with chat history."""
-    # start_time = time.time()
-    # context = request.scope.get("aws.context")
-    # request_id = context.aws_request_id if context else "local"
+@app.post("/generate", response_model=GenerateResponse, tags=["Generation"])
+async def generate_answer(request: GenerateRequest):
+    """
+    Generate an answer using ReAct agent with chat history.
     
-    # try:
-    #     # Get the raw body from the Lambda event
-    #     body = await request.json()
-    #     logger.info(f"Request received - ID: {request_id}")
-    #     logger.debug(f"Request body: {body}")
-        
-    #     # Parse request body
-    #     question = body.get('question')
-    #     session_id = body.get('session_id')
-        
-    #     if not question or not session_id:
-    #         logger.warning(f"Invalid request - missing parameters. Session: {session_id}")
-    #         return {
-    #             'statusCode': 400,
-    #             'body': json.dumps({'error': 'Question and session_id are required'})
-    #         }
-
-    #     # Initialize agent state
-    #     logger.info(f"Initializing agent state for session {session_id}")
-    #     message_history = get_message_history(session_id)
-    #     chat_history = [(msg.content, msg.content) for msg in message_history.messages]
-    #     logger.debug(f"Chat history loaded: {len(chat_history)} messages")
-        
-    #     agent_executor = create_react_agent(llm, tools)
-        
-        
-    #     messages = conversation_memory[thread_id]
-    #     if not messages:
-    #         messages.append(SystemMessage(content=SYSTEM_PROMPT))
-    #     messages.append(HumanMessage(content=question))
-
-    #     response = agent_executor.invoke({"messages": messages})
-    #     logger.info(response["messages"])
-    #     conversation_memory[thread_id] = response["messages"]
-
-    #     outputs = [
-    #         {
-    #             "role": msg.__class__.__name__.lower().replace("message", ""),
-    #             "content": msg.content
-    #         }
-    #         for msg in response["messages"]
-    #     ]
-    #     return {"result": outputs}
-
-    
-    # except json.JSONDecodeError as e:
-    #     logger.error(f"JSON decode error - ID: {request_id}, Error: {str(e)}")
-    #     return {
-    #         'statusCode': 400,
-    #         'body': json.dumps({'error': 'Invalid JSON in request body'})
-    #     }
-    # except Exception as e:
-    #     logger.error(
-    #         f"Internal error - ID: {request_id}, Type: {type(e).__name__}, "
-    #         f"Error: {str(e)}",
-    #         exc_info=True
-    #     )
-    #     return {
-    #         'statusCode': 500,
-    #         'body': json.dumps({'error': f'Internal server error: {str(e)}'})
-    #     }
+    This endpoint processes natural language questions and returns AI-generated responses.
+    It maintains conversation history using thread_id and leverages AWS Bedrock models.
+    """
+    global _react_agent
     logger.info(f"Received request: {request}")
     try:
-        body = await request.json()
-        logger.debug(f"Request body: {body}")
+        # Extract parameters from the validated request model
+        question = request.question
+        region = request.region
+        model_id = request.model_id
+        thread_id = request.thread_id
         
-        # Parse request body
-        question = body.get('question')
-        session_id = body.get('session_id')
-        thread_id = body.get('thread_id', 0)  # Default thread_id if not provided
+        # Initialize or retrieve conversation memory
         if thread_id not in conversation_memory:
             conversation_memory[thread_id] = []
         
-        bedrock_client = boto3.client("bedrock-runtime", region_name=region)
+        # Set up Bedrock client and model
+        config = Config(
+            retries = {
+                'max_attempts': 10,
+                'mode': 'adaptive'
+            }
+        )
+        bedrock_client = boto3.client("bedrock-runtime", region_name=region, config=config)
         model = ChatBedrockConverse(
             client=bedrock_client,
-            model="us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+            model=model_id
         )
-        agent_executor = create_react_agent(model, tools)
+        
+        # Create the agent executor
+        if _react_agent is None:
+            _react_agent = create_react_agent(model, tools)
 
+        # Prepare messages for the agent
         messages = conversation_memory[thread_id]
         if not messages:
             messages.append(SystemMessage(content=SYSTEM_PROMPT))
         messages.append(HumanMessage(content=question))
 
-        response = agent_executor.invoke({"messages": messages})
+        # Invoke the agent
+        response = _react_agent.invoke({"messages": [HumanMessage(content=question)]})
         logger.info(response["messages"])
         conversation_memory[thread_id] = response["messages"]
 
+        # Format the output
         outputs = [
             {
                 "role": msg.__class__.__name__.lower().replace("message", ""),
@@ -249,12 +332,15 @@ async def generate_answer(request: Request):
         logger.error(f"Error in agent processing: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/docs")
+async def redirect_root_to_docs():
+    return dict(docs="something")
+    #RedirectResponse("/docs")
 
-# Lambda Handler
+# Lambda Handler for AWS Lambda deployment
 handler = Mangum(
     app,
     lifespan="auto",
     api_gateway_base_path="/",
     text_mime_types=["application/json"]
 )
-
