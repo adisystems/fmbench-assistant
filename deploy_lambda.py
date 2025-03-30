@@ -6,6 +6,8 @@ import sys
 import subprocess
 import os
 import random
+import json
+import uuid
 
 def wait_for_function_update_completion(lambda_client, function_name):
     """
@@ -97,9 +99,9 @@ def build_and_push_container():
         print(f"Error during build and push process: {str(e)}")
         return None
 
-def deploy_lambda_container(ecr_image_uri, function_name, role_arn, region="us-east-1", memory_size=1024, timeout=90, create_url=True):
+def deploy_lambda_container(ecr_image_uri, function_name, role_arn, region="us-east-1", memory_size=1024, timeout=90, api_gateway=False, api_name=None, stage_name="prod"):
     """
-    Deploy a container from ECR as a Lambda function with an optional function URL
+    Deploy a container from ECR as a Lambda function with optional API Gateway
     
     Args:
         ecr_image_uri (str): URI of the ECR image to deploy
@@ -108,7 +110,9 @@ def deploy_lambda_container(ecr_image_uri, function_name, role_arn, region="us-e
         region (str): AWS region to deploy the Lambda function
         memory_size (int): Memory size in MB for the Lambda function
         timeout (int): Timeout in seconds for the Lambda function
-        create_url (bool): Whether to create a function URL for direct HTTP access
+        api_gateway (bool): Whether to create an API Gateway for the Lambda
+        api_name (str): Name for the API Gateway (defaults to function-name-api)
+        stage_name (str): API Gateway stage name
     """
     print("=" * 80)
     print(f"Deploying container {ecr_image_uri} as Lambda function {function_name} in region {region}...")
@@ -201,99 +205,11 @@ def deploy_lambda_container(ecr_image_uri, function_name, role_arn, region="us-e
             function_arn = function_info['Configuration']['FunctionArn']
             print(f"Function ARN: {function_arn}")
             
-            # Create or update function URL configuration
-            print("Setting up Lambda function URL...")
-            try:
-                # Check if function URL already exists
-                try:
-                    url_config = lambda_client.get_function_url_config(FunctionName=function_name)
-                    print(f"Function URL already exists: {url_config['FunctionUrl']}")
-                    
-                    # Update function URL config (if needed)
-                    lambda_client.update_function_url_config(
-                        FunctionName=function_name,
-                        AuthType='NONE',  # Public access, no IAM authentication
-                        Cors={
-                            'AllowOrigins': ['*'],
-                            'AllowMethods': ['*'],  # Use wildcard instead of listing specific methods
-                            'AllowHeaders': ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token', 'X-Amz-User-Agent', 'Access-Control-Allow-Origin'],
-                            'ExposeHeaders': ['*'],
-                            'MaxAge': 86400  # 24 hours
-                        }
-                    )
-                    print("Updated function URL configuration with CORS settings")
-                    
-                    # Ensure permissions are set correctly for existing URL
-                    try:
-                        # Check if permission already exists
-                        try:
-                            policy = lambda_client.get_policy(FunctionName=function_name)
-                            if '"Principal":"*"' in policy['Policy'] and 'lambda:InvokeFunctionUrl' in policy['Policy']:
-                                print("Public access permission already exists")
-                            else:
-                                # Add missing permission
-                                lambda_client.add_permission(
-                                    FunctionName=function_name,
-                                    StatementId='FunctionURLAllowPublicAccess',
-                                    Action='lambda:InvokeFunctionUrl',
-                                    Principal='*',
-                                    FunctionUrlAuthType='NONE'
-                                )
-                                print("Added missing permission for public access to function URL")
-                        except lambda_client.exceptions.ResourceNotFoundException:
-                            # No policy exists yet, add one
-                            lambda_client.add_permission(
-                                FunctionName=function_name,
-                                StatementId='FunctionURLAllowPublicAccess',
-                                Action='lambda:InvokeFunctionUrl',
-                                Principal='*',
-                                FunctionUrlAuthType='NONE'
-                            )
-                            print("Added permission for public access to function URL")
-                    except Exception as e:
-                        print(f"Warning: Error checking/setting permissions: {str(e)}")
-                        print("You may need to manually set permissions for browser access.")
-                except lambda_client.exceptions.ResourceNotFoundException:
-                    # Create new function URL
-                    url_config = lambda_client.create_function_url_config(
-                        FunctionName=function_name,
-                        AuthType='NONE',  # Public access, no IAM authentication
-                        Cors={
-                            'AllowOrigins': ['*'],
-                            'AllowMethods': ['*'],  # Use wildcard instead of listing specific methods
-                            'AllowHeaders': ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token', 'X-Amz-User-Agent'],
-                            'ExposeHeaders': ['*'],
-                            'MaxAge': 86400  # 24 hours
-                        }
-                    )
-                    print(f"Created new function URL: {url_config['FunctionUrl']}")
-                    
-                    # Add permission for public access from any source (including browsers)
-                    try:
-                        lambda_client.add_permission(
-                            FunctionName=function_name,
-                            StatementId='FunctionURLAllowPublicAccess',
-                            Action='lambda:InvokeFunctionUrl',
-                            Principal='*',
-                            FunctionUrlAuthType='NONE'
-                        )
-                        print("Added permission for public access to function URL")
-                        
-                        # Verify the permission was added correctly
-                        policy = lambda_client.get_policy(FunctionName=function_name)
-                        print("Function policy successfully configured for public access")
-                    except lambda_client.exceptions.ResourceConflictException:
-                        # Permission might already exist, which is fine
-                        print("Public access permission already exists for this function")
-                    except Exception as e:
-                        print(f"Warning: Error setting permissions: {str(e)}")
-                        print("The function URL may not be accessible from browsers. You may need to manually set permissions.")
-                
-                return True
-                
-            except Exception as e:
-                print(f"Error setting up function URL: {str(e)}")
-                print("Function was deployed successfully, but function URL setup failed")
+            if api_gateway:
+                # Setup API Gateway instead of Function URL
+                return deploy_api_gateway(function_name, function_arn, region, api_name, stage_name)
+            else:
+                print("No API Gateway requested. Lambda deployment complete.")
                 return True
         else:
             print(f"Function deployment did not reach Active state in time. Last state: {function_state}")
@@ -301,6 +217,303 @@ def deploy_lambda_container(ecr_image_uri, function_name, role_arn, region="us-e
             
     except Exception as e:
         print(f"Error deploying Lambda function: {str(e)}")
+        return False
+    finally:
+        print("Lambda deployment process completed.")
+            
+def deploy_api_gateway(function_name, function_arn, region, api_name=None, stage_name="prod"):
+    """
+    Deploy an API Gateway v2 HTTP API with Lambda integration and API key authentication
+    
+    Args:
+        function_name (str): The Lambda function name
+        function_arn (str): The Lambda function ARN
+        region (str): AWS region
+        api_name (str): Name for the API Gateway
+        stage_name (str): API Gateway stage name
+    
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    if api_name is None:
+        api_name = f"{function_name}-api"
+    
+    print("=" * 80)
+    print(f"Deploying API Gateway ({api_name}) for Lambda function: {function_name}")
+    print("=" * 80)
+    
+    # Initialize clients
+    apigateway_client = boto3.client('apigatewayv2', region_name=region)
+    apigateway_v1_client = boto3.client('apigateway', region_name=region)
+    lambda_client = boto3.client('lambda', region_name=region)
+    
+    try:
+        # Step 1: Create or get existing API
+        api_id = None
+        
+        # Check if API already exists with this name
+        try:
+            response = apigateway_client.get_apis()
+            for api in response.get('Items', []):
+                if api['Name'] == api_name:
+                    api_id = api['ApiId']
+                    print(f"Found existing API Gateway: {api_id}")
+                    break
+        except Exception as e:
+            print(f"Error checking existing APIs: {str(e)}")
+        
+        # Create new API if needed
+        if not api_id:
+            try:
+                # Create HTTP API
+                response = apigateway_client.create_api(
+                    Name=api_name,
+                    ProtocolType='HTTPS',
+                    CorsConfiguration={
+                        'AllowOrigins': ['*'],
+                        'AllowMethods': ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'PATCH'],
+                        'AllowHeaders': ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key'],
+                        'MaxAge': 86400
+                    }
+                )
+                api_id = response['ApiId']
+                print(f"Created new API Gateway: {api_id}")
+            except Exception as e:
+                print(f"Error creating API Gateway: {str(e)}")
+                return False
+        
+        # Step 2: Create or update the API key
+        api_key_id = None
+        api_key_value = None
+        
+        try:
+            # Look for existing API key - use the v1 client
+            response = apigateway_v1_client.get_api_keys()
+            for key in response.get('items', []):
+                if key.get('name') == f"{api_name}-key":
+                    api_key_id = key['id']
+                    print(f"Found existing API key: {api_key_id}")
+                    break
+                    
+            if not api_key_id:
+                # Create a new API key - use the v1 client
+                api_key_value = str(uuid.uuid4())
+                response = apigateway_v1_client.create_api_key(
+                    name=f"{api_name}-key",
+                    value=api_key_value,
+                    enabled=True
+                )
+                api_key_id = response['id']
+                print(f"Created API key: {api_key_id}")
+        except Exception as e:
+            print(f"Error managing API key: {str(e)}")
+            return False
+        
+        # Step 3: Create or update integration with Lambda
+        integration_id = None
+        
+        try:
+            # Check for existing integrations
+            response = apigateway_client.get_integrations(ApiId=api_id)
+            for integration in response.get('Items', []):
+                if integration.get('IntegrationUri') == function_arn:
+                    integration_id = integration['IntegrationId']
+                    print(f"Found existing Lambda integration: {integration_id}")
+                    break
+                    
+            if not integration_id:
+                # Create new integration
+                response = apigateway_client.create_integration(
+                    ApiId=api_id,
+                    IntegrationType='AWS_PROXY',
+                    IntegrationMethod='POST',
+                    PayloadFormatVersion='2.0',
+                    IntegrationUri=function_arn,
+                    TimeoutInMillis=30000
+                )
+                integration_id = response['IntegrationId']
+                print(f"Created new Lambda integration: {integration_id}")
+        except Exception as e:
+            print(f"Error setting up Lambda integration: {str(e)}")
+            return False
+            
+        # Step 4: Create routes for the API
+        route_keys = ['GET /', 'GET /docs', 'GET /{proxy+}', 'POST /{proxy+}']
+        
+        for route_key in route_keys:
+            try:
+                # Check if route exists
+                route_exists = False
+                try:
+                    response = apigateway_client.get_routes(ApiId=api_id)
+                    for route in response.get('Items', []):
+                        if route['RouteKey'] == route_key:
+                            route_exists = True
+                            print(f"Route already exists: {route_key}")
+                            break
+                except Exception:
+                    pass
+                
+                if not route_exists:
+                    response = apigateway_client.create_route(
+                        ApiId=api_id,
+                        RouteKey=route_key,
+                        Target=f'integrations/{integration_id}',
+                        AuthorizationType='NONE'  # We'll use API key instead
+                    )
+                    print(f"Created route: {route_key}")
+            except Exception as e:
+                print(f"Error creating route {route_key}: {str(e)}")
+                # Continue with other routes
+        
+        # Step 5: Add Lambda permission to allow API Gateway to invoke it
+        try:
+            # Get the AWS account ID
+            sts_client = boto3.client('sts', region_name=region)
+            account_id = sts_client.get_caller_identity()['Account']
+            
+            # Create the source ARN with the actual account ID instead of wildcard
+            source_arn = f"arn:aws:execute-api:{region}:{account_id}:{api_id}/*/*"
+            
+            try:
+                # Check if permission exists
+                policy = lambda_client.get_policy(FunctionName=function_name)
+                policy_json = json.loads(policy['Policy'])
+                
+                permission_exists = False
+                for statement in policy_json.get('Statement', []):
+                    if (statement.get('Principal', {}).get('Service') == 'apigateway.amazonaws.com' and 
+                        f":{api_id}/" in statement.get('Condition', {}).get('ArnLike', {}).get('AWS:SourceArn', '')):
+                        permission_exists = True
+                        break
+                        
+                if not permission_exists:
+                    raise lambda_client.exceptions.ResourceNotFoundException('Permission not found')
+                    
+                print("API Gateway permission already exists for Lambda")
+                
+            except (lambda_client.exceptions.ResourceNotFoundException, KeyError, json.JSONDecodeError):
+                # Add permission
+                lambda_client.add_permission(
+                    FunctionName=function_name,
+                    StatementId=f'apigateway-invoke-{int(time.time())}',
+                    Action='lambda:InvokeFunction',
+                    Principal='apigateway.amazonaws.com',
+                    SourceArn=source_arn
+                )
+                print("Added permission for API Gateway to invoke Lambda")
+        except Exception as e:
+            print(f"Error setting Lambda permission: {str(e)}")
+            return False
+            
+        # Step 6: Deploy the API to a stage
+        try:
+            # Check if stage exists
+            stage_exists = False
+            try:
+                apigateway_client.get_stage(ApiId=api_id, StageName=stage_name)
+                stage_exists = True
+                print(f"Stage {stage_name} already exists")
+            except apigateway_client.exceptions.NotFoundException:
+                pass
+                
+            if not stage_exists:
+                response = apigateway_client.create_stage(
+                    ApiId=api_id,
+                    StageName=stage_name,
+                    AutoDeploy=True
+                )
+                print(f"Created stage: {stage_name}")
+        except Exception as e:
+            print(f"Error creating API stage: {str(e)}")
+            return False
+            
+        # Step 7: Create usage plan and connect API key
+        try:
+            # Create or get usage plan
+            usage_plan_id = None
+            
+            try:
+                response = apigateway_v1_client.get_usage_plans()
+                for plan in response.get('items', []):
+                    if plan.get('name') == f"{api_name}-usage-plan":
+                        usage_plan_id = plan['id']
+                        print(f"Found existing usage plan: {usage_plan_id}")
+                        break
+            except Exception as e:
+                print(f"Error checking existing usage plans: {str(e)}")
+                
+            if not usage_plan_id:
+                response = apigateway_v1_client.create_usage_plan(
+                    name=f"{api_name}-usage-plan",
+                    description=f"Usage plan for {api_name}",
+                    quota={
+                        'limit': 1000,
+                        'period': 'MONTH'
+                    },
+                    throttle={
+                        'burstLimit': 10,
+                        'rateLimit': 5
+                    }
+                )
+                usage_plan_id = response['id']
+                print(f"Created usage plan: {usage_plan_id}")
+                
+            # Associate stage with usage plan
+            try:
+                apigateway_v1_client.update_usage_plan(
+                    usagePlanId=usage_plan_id,
+                    patchOperations=[
+                        {
+                            'op': 'add',
+                            'path': '/apiStages',
+                            'value': f"{api_id}:{stage_name}"
+                        }
+                    ]
+                )
+                print(f"Associated stage {stage_name} with usage plan")
+            except Exception as e:
+                print(f"Error associating stage with usage plan: {str(e)}")
+                
+            # Associate API key with usage plan
+            try:
+                apigateway_v1_client.create_usage_plan_key(
+                    usagePlanId=usage_plan_id,
+                    keyId=api_key_id,
+                    keyType='API_KEY'
+                )
+                print(f"Associated API key with usage plan")
+            except apigateway_v1_client.exceptions.ConflictException:
+                print(f"API key already associated with usage plan")
+            except Exception as e:
+                print(f"Error associating API key with usage plan: {str(e)}")
+                
+        except Exception as e:
+            print(f"Error setting up usage plan: {str(e)}")
+            return False
+            
+        # Print the API URL and key information
+        api_url = f"https://{api_id}.execute-api.{region}.amazonaws.com/{stage_name}"
+        print("\n" + "=" * 80)
+        print(f"API Gateway successfully deployed!")
+        print(f"API URL: {api_url}")
+        
+        if api_key_value:
+            print(f"API Key: {api_key_value}")
+            print("\nTo use this API with the key:")
+            print(f"curl -H 'x-api-key: {api_key_value}' {api_url}")
+        else:
+            print("\nTo use this API, you need the API key. You can retrieve it from the AWS console.")
+            print(f"curl -H 'x-api-key: YOUR_API_KEY' {api_url}")
+            
+        print("\nFor the /docs endpoint (Swagger UI):")
+        print(f"{api_url}/docs")
+        print("=" * 80)
+        
+        return True
+        
+    except Exception as e:
+        print(f"Error deploying API Gateway: {str(e)}")
         return False
 
 def main():
@@ -311,7 +524,9 @@ def main():
     parser.add_argument('--region', default='us-east-1', help='AWS region to deploy the Lambda function (default: us-east-1)')
     parser.add_argument('--memory', type=int, default=1024, help='Memory size in MB (default: 1024)')
     parser.add_argument('--timeout', type=int, default=90, help='Timeout in seconds (default: 90)')
-    parser.add_argument('--no-url', action='store_true', help='Do not create a function URL (by default, a function URL is created)')
+    parser.add_argument('--api-gateway', action='store_true', help='Create an API Gateway with API key authentication')
+    parser.add_argument('--api-name', help='Name for the API Gateway (defaults to function-name-api)')
+    parser.add_argument('--stage-name', default='prod', help='API Gateway stage name (default: prod)')
     
     args = parser.parse_args()
     
@@ -335,7 +550,9 @@ def main():
         args.region,
         args.memory,
         args.timeout,
-        not args.no_url  # Create URL by default unless --no-url flag is provided
+        args.api_gateway,
+        args.api_name,
+        args.stage_name
     )
     
     if not success:

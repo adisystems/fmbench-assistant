@@ -82,7 +82,7 @@ class DSANRagSetup(BaseModel):
     """
     region: str = Field(default="us-east-1", description="AWS region to use for Amazon Bedrock")
     data_file_path: Path = Field(default=Path("data/documents_1.json"), description="Path to the documents data file")
-    response_model_id: str = Field(default="us.amazon.nova-micro-v1:0", description="Bedrock model ID to use")
+    response_model_id: str = Field(default="us.anthropic.claude-3-5-sonnet-20241022-v2:0", description="Bedrock model ID to use")
     embedding_model_id: str = Field(default="amazon.titan-embed-text-v1", description="Amazon Bedrock embedding model to use")
     retriever_k: int = Field(default=5, description="Number of documents to retrieve")
     
@@ -210,8 +210,8 @@ _react_agent = None
 # ----------------------------
 @tool
 def get_dsan_info(
-    question: str = "What is the DSAN program?"
-) -> Dict[str, Any]:
+    question: str
+) -> str:
     """
     Retrieves information about Georgetown's Data Science & Analytics (DSAN) program from official documentation. 
     Use this tool for questions about courses, requirements, faculty, admissions, or program details.
@@ -221,7 +221,7 @@ def get_dsan_info(
                  such as course offerings, degree requirements, application processes, or faculty.
                  
     Returns:
-        A dictionary containing the answer and additional context from the documentation.
+        A string containing the answer and additional context from the documentation.
     """
     global _rag_system
     
@@ -231,7 +231,7 @@ def get_dsan_info(
         
     # Use the RAG system to answer the question
     result = _rag_system.query(question)
-    return result
+    return result["answer"]
 
 tools = [get_dsan_info]
 
@@ -247,8 +247,8 @@ conversation_memory = {}
 class GenerateRequest(BaseModel):
     question: str = Field(..., description="The question to answer")
     region: str = Field(default="us-east-1", description="AWS region for Bedrock")
-    model_id: str = Field(
-        default="us.amazon.nova-lite-v1:0", 
+    response_model_id: str = Field(
+        default="us.anthropic.claude-3-5-sonnet-20241022-v2:0", #us.amazon.nova-lite-v1:0", 
         description="Bedrock model ID to use"
     )
     thread_id: Optional[int] = Field(
@@ -267,7 +267,7 @@ class GenerateResponse(BaseModel):
 # ----------------------------
 # FastAPI App Initialization
 # ----------------------------
-app = FastAPI(title="Georgetown University DSAN Program Information Agent")
+app = FastAPI(title="Georgetown University DSAN Program Information Agent", root_path="/prod")
 
 @app.post("/generate", response_model=GenerateResponse, tags=["Generation"])
 async def generate_answer(request: GenerateRequest):
@@ -283,7 +283,7 @@ async def generate_answer(request: GenerateRequest):
         # Extract parameters from the validated request model
         question = request.question
         region = request.region
-        model_id = request.model_id
+        model_id = request.response_model_id
         thread_id = request.thread_id
         
         # Initialize or retrieve conversation memory
@@ -307,16 +307,14 @@ async def generate_answer(request: GenerateRequest):
         if _react_agent is None:
             _react_agent = create_react_agent(model, tools)
 
-        # Prepare messages for the agent
         messages = conversation_memory[thread_id]
         if not messages:
             messages.append(SystemMessage(content=SYSTEM_PROMPT))
         messages.append(HumanMessage(content=question))
 
-        # Invoke the agent
-        response = _react_agent.invoke({"messages": [HumanMessage(content=question)]})
+        response = _react_agent.invoke({"messages": messages})
         logger.info(response["messages"])
-        conversation_memory[thread_id] = response["messages"]
+        conversation_memory[request.thread_id] = response["messages"]
 
         # Format the output
         outputs = [
@@ -341,6 +339,6 @@ async def redirect_root_to_docs():
 handler = Mangum(
     app,
     lifespan="auto",
-    api_gateway_base_path="/",
+    api_gateway_base_path="/prod",
     text_mime_types=["application/json"]
 )

@@ -5,7 +5,7 @@ set -e
 
 # Configuration
 AWS_REGION="us-east-1"
-ECR_REPO_NAME="ai-agent-lambda"
+ECR_REPO_NAME="dsan-assistant"
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 ECR_REPO_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME"
 
