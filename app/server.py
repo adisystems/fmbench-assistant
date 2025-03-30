@@ -2,6 +2,8 @@ import os
 import json
 import boto3
 import logging
+import datetime
+import sys
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
@@ -15,7 +17,25 @@ from dotenv import load_dotenv
 init(autoreset=True)
 
 class ColoredFormatter(logging.Formatter):
+    LEVEL_COLORS = {
+        'DEBUG': Fore.CYAN,
+        'INFO': Fore.GREEN,
+        'WARNING': Fore.YELLOW,
+        'ERROR': Fore.RED,
+        'CRITICAL': Fore.RED + Style.BRIGHT
+    }
+    
     def format(self, record):
+        # Format timestamp, process ID, filename, line number, and severity
+        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+        process_id = os.getpid()
+        severity = record.levelname
+        file_info = f"{record.filename}:{record.lineno}"
+        
+        # Add colored severity and metadata prefix to all log entries
+        prefix = f"{timestamp} [{process_id}] {file_info} {self.LEVEL_COLORS.get(severity, '')}{severity}{Style.RESET_ALL}: "
+        
+        # Handle special message formatting for message objects
         msg = record.msg
         if isinstance(msg, list):
             formatted_messages = []
@@ -31,13 +51,23 @@ class ColoredFormatter(logging.Formatter):
                     formatted = str(m)
                 formatted_messages.append(formatted)
             record.msg = "\n".join(formatted_messages)
-        return super().format(record)
+        
+        # Add prefix to the message
+        formatted_message = super().format(record)
+        return f"{prefix}{formatted_message}"
 
+# Configure logger
 logger = logging.getLogger(__name__)
-handler = logging.StreamHandler()
+logger.setLevel(logging.INFO)
+
+# Remove any existing handlers to avoid duplicates
+if logger.handlers:
+    logger.handlers.clear()
+
+# Add console handler with our custom formatter
+handler = logging.StreamHandler(sys.stdout)
 handler.setFormatter(ColoredFormatter("%(message)s"))
 logger.addHandler(handler)
-logger.setLevel(logging.INFO)
 
 # ----------------------------
 # FastAPI App Initialization
@@ -85,7 +115,7 @@ embeddings_model = BedrockEmbeddings(client=bedrock_client, model_id="amazon.tit
 from langchain_community.vectorstores import FAISS
 vectorstore = FAISS.from_documents(documents=doc_chunks, embedding=embeddings_model)
 retriever = vectorstore.as_retriever(search_kwargs={'k': 5})
-
+logger.info(f"vector store prepared")
 from langchain_core.prompts import ChatPromptTemplate
 system_prompt = (
     "You are an assistant that answers questions about the DSAN program at Georgetown University. "
@@ -114,6 +144,7 @@ def get_info(question: str) -> str:
     Answer questions using Georgetown DSAN documentation.
     """
     result = rag_chain.invoke({"input": question})
+    logger.info(f"result={result}")
     return result["answer"]
 
 tools = [get_info]

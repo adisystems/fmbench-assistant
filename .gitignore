@@ -1,4 +1,5 @@
 # Environment variables
+app/__pycache__/
 .env
 
 # Virtual Environment
