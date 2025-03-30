@@ -3,7 +3,7 @@ name = "ai-agent-deploy"
 version = "0.1.0"
 description = "AI Agent for Georgetown Course Finder"
 readme = "README.md"
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.12"
 license = {file = "LICENSE"}
 authors = [
     {name = "Your Name", email = "you@example.com"}
@@ -23,7 +23,6 @@ dependencies = [
     "colorama>=0.4.6",
     "streamlit>=1.44.0",
     "duckduckgo-search>=7.5.4",
-    "faiss-cpu>=1.10.0",
 ]
 
 [project.optional-dependencies]
