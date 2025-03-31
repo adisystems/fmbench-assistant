@@ -269,7 +269,7 @@ class GenerateResponse(BaseModel):
 # ----------------------------
 app = FastAPI(title="Georgetown University DSAN Program Information Agent", root_path="/prod")
 
-@app.post("/generate", response_model=GenerateResponse, tags=["Generation"])
+@app.post("/generate")
 async def generate_answer(request: GenerateRequest):
     """
     Generate an answer using ReAct agent with chat history.
@@ -280,11 +280,13 @@ async def generate_answer(request: GenerateRequest):
     global _react_agent
     logger.info(f"Received request: {request}")
     try:
+        body = request.model_dump()
+        print(f"Request body: {body}")
         # Extract parameters from the validated request model
-        question = request.question
-        region = request.region
-        model_id = request.response_model_id
-        thread_id = request.thread_id
+        question = body.get('question')
+        thread_id = body.get('thread_id', 0)
+        region = body.get('region', "us-east-1")
+        model_id = body.get('response_model_id', "us.anthropic.claude-3-5-sonnet-20241022-v2:0")
         
         # Initialize or retrieve conversation memory
         if thread_id not in conversation_memory:
