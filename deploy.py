@@ -268,7 +268,7 @@ def deploy_api_gateway(function_name, function_arn, region, api_name=None, stage
                 # Create HTTP API
                 response = apigateway_client.create_api(
                     Name=api_name,
-                    ProtocolType='HTTPS',
+                    ProtocolType='HTTP',
                     CorsConfiguration={
                         'AllowOrigins': ['*'],
                         'AllowMethods': ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'PATCH'],
@@ -522,8 +522,8 @@ def main():
     parser.add_argument('--function-name', required=True, help='Name for the Lambda function')
     parser.add_argument('--role-arn', required=True, help='ARN of the Lambda execution role')
     parser.add_argument('--region', default='us-east-1', help='AWS region to deploy the Lambda function (default: us-east-1)')
-    parser.add_argument('--memory', type=int, default=1024, help='Memory size in MB (default: 1024)')
-    parser.add_argument('--timeout', type=int, default=90, help='Timeout in seconds (default: 90)')
+    parser.add_argument('--memory', type=int, default=2048, help='Memory size in MB (default: 2048)')
+    parser.add_argument('--timeout', type=int, default=300, help='Timeout in seconds (default: 300)')
     parser.add_argument('--api-gateway', action='store_true', help='Create an API Gateway with API key authentication')
     parser.add_argument('--api-name', help='Name for the API Gateway (defaults to function-name-api)')
     parser.add_argument('--stage-name', default='prod', help='API Gateway stage name (default: prod)')

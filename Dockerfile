@@ -12,7 +12,7 @@ RUN pip install -U boto3 botocore
 # Copy function code and data
 COPY lambda/lambda.py ${LAMBDA_TASK_ROOT}
 COPY lambda/__init__.py ${LAMBDA_TASK_ROOT}
-COPY data/documents_1.json ${LAMBDA_TASK_ROOT}/data/
+COPY indexes ${LAMBDA_TASK_ROOT}/indexes
 
 # Set the CMD to your handler
 CMD [ "lambda.handler" ]

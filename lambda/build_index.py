@@ -2,25 +2,19 @@ import os
 import json
 import boto3
 import logging
+import argparse
 from pathlib import Path
-from mangum import Mangum
 from dotenv import load_dotenv
 from botocore.config import Config
 from pydantic import BaseModel, Field
 from langchain.schema import Document
-from langchain_core.tools import tool
-from starlette.requests import Request
 from colorama import init, Fore, Style
-from fastapi import FastAPI, HTTPException
 from typing import List, Dict, Any, Optional
 from langchain_aws import ChatBedrockConverse
-from fastapi.responses import RedirectResponse
-from langgraph.prebuilt import create_react_agent
 from langchain_community.vectorstores import FAISS
 from langchain.chains import create_retrieval_chain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_aws.embeddings.bedrock import BedrockEmbeddings
-from langchain_core.messages import HumanMessage, SystemMessage
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from botocore.session import get_session
 from botocore.credentials import RefreshableCredentials
@@ -89,7 +83,7 @@ class DSANRagSetup(BaseModel):
     response_model_id: str = Field(default="us.anthropic.claude-3-5-sonnet-20241022-v2:0", description="Bedrock model ID to use")
     embedding_model_id: str = Field(default="amazon.titan-embed-text-v1", description="Amazon Bedrock embedding model to use")
     retriever_k: int = Field(default=5, description="Number of documents to retrieve")
-    vector_db_path: Optional[str] = Field(default=os.path.join("indexes", "dsan_index"), description="Path to load/save FAISS vector database")
+    vector_db_path: Optional[str] = Field(default=None, description="Path to load/save FAISS vector database")
     bedrock_role_arn: Optional[str] = Field(default=None, description="ARN of the IAM role to assume for Bedrock cross-account access")
     
     # These will be initialized in the setup method
@@ -194,12 +188,8 @@ class DSANRagSetup(BaseModel):
         
         # Check if we should load an existing vector store
         if self.vector_db_path and os.path.exists(self.vector_db_path):
-            from pathlib import Path
-            directory = Path(self.vector_db_path)
-            files = [f.name for f in directory.iterdir() if f.is_file()]
-            self.logger.info(f"files={files}")
             self.logger.info(f"Loading vector store from {self.vector_db_path}")
-            self.vectorstore = FAISS.load_local(self.vector_db_path, embeddings_model, allow_dangerous_deserialization=True)
+            self.vectorstore = FAISS.load_local(self.vector_db_path, embeddings_model)
             self.logger.info(f"Successfully loaded vector store from {self.vector_db_path}")
         else:
             # Load documents and create vector store from scratch
@@ -302,146 +292,56 @@ class DSANRagSetup(BaseModel):
         result = self.rag_chain.invoke({"input": question})
         return result
 
-# Global instance of the RAG setup
-_rag_system = None
-_react_agent = None
 
 # ----------------------------
-# Tool Definition
+# Main function for creating and saving the vector index
 # ----------------------------
-@tool
-def get_dsan_info(
-    question: str
-) -> str:
-    """
-    Retrieves information about Georgetown's Data Science & Analytics (DSAN) program from official documentation. 
-    Use this tool for questions about courses, requirements, faculty, admissions, or program details.
+def main():
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="Create and save a FAISS vector index for the DSAN RAG system")
+    parser.add_argument("--data-file", type=str, default="data/documents_1.json", 
+                        help="Path to the JSON data file containing documents")
+    parser.add_argument("--vector-db-path", type=str, default="indexes/dsan_index", 
+                        help="Path to save the FAISS vector database")
+    parser.add_argument("--region", type=str, default="us-east-1", 
+                        help="AWS region for Bedrock services")
+    parser.add_argument("--embedding-model", type=str, default="amazon.titan-embed-text-v1", 
+                        help="Amazon Bedrock embedding model ID")
+    parser.add_argument("--bedrock-role-arn", type=str, 
+                        default="arn:aws:iam::605134468121:role/BedrockCrossAccount2",
+                        help="ARN of the IAM role to assume for Bedrock cross-account access")
     
-    Args:
-        question: A clear, specific question about Georgetown's Data Science & Analytics program,
-                 such as course offerings, degree requirements, application processes, or faculty.
-                 
-    Returns:
-        A string containing the answer and additional context from the documentation.
-    """
-    global _rag_system
+    args = parser.parse_args()
     
-    # Initialize the RAG system if it hasn't been set up yet
-    if _rag_system is None:        
-        _rag_system = DSANRagSetup(bedrock_role_arn="arn:aws:iam::605134468121:role/BedrockCrossAccount2").setup()
-        
-    # Use the RAG system to answer the question
-    result = _rag_system.query(question)
-    return result["answer"]
-
-tools = [get_dsan_info]
-
-# ----------------------------
-# Agent Setup
-# ----------------------------
-SYSTEM_PROMPT = (
-    "You are a helpful academic assistant for Georgetown University's DSAN program. "
-    "Use the available tools to answer user questions about the program."
-)
-
-conversation_memory = {}
-class GenerateRequest(BaseModel):
-    question: str = Field(..., description="The question to answer")
-    region: str = Field(default="us-east-1", description="AWS region for Bedrock")
-    response_model_id: str = Field(
-        default="us.anthropic.claude-3-5-sonnet-20241022-v2:0", #us.amazon.nova-lite-v1:0", 
-        description="Bedrock model ID to use"
-    )
-    thread_id: Optional[int] = Field(
-        default=0, 
-        description="Conversation thread ID for maintaining chat history"
-    )
-
-class MessageOutput(BaseModel):
-    role: str = Field(..., description="Role of the message sender (system, human, ai)")
-    content: str = Field(..., description="Content of the message")
-
-class GenerateResponse(BaseModel):
-    result: List[MessageOutput] = Field(..., description="List of messages in the conversation")
-
-
-# ----------------------------
-# FastAPI App Initialization
-# ----------------------------
-app = FastAPI(title="Georgetown University DSAN Program Information Agent", root_path="/prod")
-
-@app.post("/generate")
-async def generate_answer(request: GenerateRequest):
-    """
-    Generate an answer using ReAct agent with chat history.
-    
-    This endpoint processes natural language questions and returns AI-generated responses.
-    It maintains conversation history using thread_id and leverages AWS Bedrock models.
-    """
-    global _react_agent
-    logger.info(f"Received request: {request}")
     try:
-        body = request.model_dump()
-        print(f"Request body: {body}")
-        # Extract parameters from the validated request model
-        question = body.get('question')
-        thread_id = body.get('thread_id', 0)
-        region = body.get('region', "us-east-1")
-        model_id = body.get('response_model_id', "us.anthropic.claude-3-5-sonnet-20241022-v2:0")
+        logger.info("Starting FAISS index creation process")
+        logger.info(f"Data file: {args.data_file}")
+        logger.info(f"Vector DB path: {args.vector_db_path}")
         
-        # Initialize or retrieve conversation memory
-        if thread_id not in conversation_memory:
-            conversation_memory[thread_id] = []
-        
-        # Set up Bedrock client and model
-        config = Config(
-            retries = {
-                'max_attempts': 10,
-                'mode': 'adaptive'
-            }
-        )
-        bedrock_client = boto3.client("bedrock-runtime", region_name=region, config=config)
-        model = ChatBedrockConverse(
-            client=bedrock_client,
-            model=model_id
+        # Create the RAG setup object
+        rag_setup = DSANRagSetup(
+            region=args.region,
+            data_file_path=Path(args.data_file),
+            embedding_model_id=args.embedding_model,
+            vector_db_path=args.vector_db_path,
+            bedrock_role_arn=args.bedrock_role_arn
         )
         
-        # Create the agent executor
-        if _react_agent is None:
-            _react_agent = create_react_agent(model, tools)
-
-        messages = conversation_memory[thread_id]
-        if not messages:
-            messages.append(SystemMessage(content=SYSTEM_PROMPT))
-        messages.append(HumanMessage(content=question))
-
-        response = _react_agent.invoke({"messages": messages})
-        logger.info(response["messages"])
-        conversation_memory[request.thread_id] = response["messages"]
-
-        # Format the output
-        outputs = [
-            {
-                "role": msg.__class__.__name__.lower().replace("message", ""),
-                "content": msg.content
-            }
-            for msg in response["messages"]
-        ]
-        return {"result": outputs}
-
+        # Create and save the index
+        logger.info("Creating vector index - this may take some time depending on the document count")
+        rag_setup.create_index()
+        logger.info("🎉 Index creation completed successfully!")
+        logger.info(f"Index saved to: {args.vector_db_path}")
+        logger.info("You can now use this index for faster RAG queries")
+    
     except Exception as e:
-        logger.error(f"Error in agent processing: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"❌ Error creating index: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return 1
+    
+    return 0
 
-@app.get("/docs")
-async def redirect_root_to_docs():
-    return dict(docs="something")
-    #RedirectResponse("/docs")
 
-# Lambda Handler for AWS Lambda deployment
-handler = Mangum(
-    app,
-    lifespan="auto",
-    api_gateway_base_path="/prod",
-    text_mime_types=["application/json"]
-)
+if __name__ == "__main__":
+    exit(main())
