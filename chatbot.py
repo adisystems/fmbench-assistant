@@ -1,7 +1,9 @@
-import streamlit as st
-import requests
-import time
 import re
+import sys
+import time
+import requests
+import argparse
+import streamlit as st
 
 # Set page configuration
 st.set_page_config(
@@ -86,8 +88,22 @@ if 'awaiting_response' not in st.session_state:
 if 'thread_id' not in st.session_state:
     st.session_state.thread_id = 0
 
-# API endpoint - updated to match server.py
-API_URL = "http://localhost:8000/generate"
+def get_args():
+    """Parse command line arguments using argparse."""
+    parser = argparse.ArgumentParser(description="Streamlit app with command line arguments")
+    
+    # Add your arguments
+    parser.add_argument("--api-server-url", type=str, help="API server URL", default='http://localhost:8000/generate')
+    
+    args_idx = 1 # start after -- in the command line "streamlit run chatbot.py -- --api-server-url https://zh0b435435.execute-api.us-east-1.amazonaws.com/prod/generate"
+    args = parser.parse_args(sys.argv[args_idx:])
+    return args
+
+# Get the arguments (skip the first one, which is the script name)
+args = get_args()
+#st.write(f"Arguments: {args}")
+API_URL =  args.api_server_url
+
 
 # Define a helper function for rerunning safely
 def safe_rerun():
@@ -137,7 +153,7 @@ def stream_response(question):
         }
         
         with st.spinner("Searching for DSAN program information..."):
-            response = requests.post(API_URL, json=payload)
+            response = requests.post(args.api_server_url, json=payload)
             if response.status_code == 200:
                 result = response.json()
                 # Updated to handle the new response format

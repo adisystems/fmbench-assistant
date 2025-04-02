@@ -1,18 +1,15 @@
-uvicorn==0.23.2
-langserve[server]>=0.0.30
-pydantic>=2,<3
+fastapi
+mangum
+pydantic==2.9.2
 langchain-core==0.3.12
 langgraph==0.2.38
 langchain==0.3.3
 langchain-aws==0.2.2
 langchain-community==0.3.2
-langchain-pinecone==0.2.0
 boto3==1.35.43
 langchain-cli==0.0.31
-poetry==1.8.4
-
-# DSAN search dependencies
-transformers>=4.38.2
-torch>=2.0.0
-faiss-cpu>=1.7.4
-numpy>=1.24.0
+colorama
+python-dotenv>=1.0.0
+faiss-cpu==1.7.4
+numpy==1.24.3
+starlette
