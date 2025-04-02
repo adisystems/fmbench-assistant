@@ -1,6 +1,13 @@
 # DSAN Assistant
 
-A LangGraph-based RAG (Retrieval-Augmented Generation) system for the Georgetown University Data Science and Analytics (DSAN) program. This repository showcases a design pattern for building and deploying LangGraph agents with a progression from local development to serverless deployment.
+A LangGraph-based RAG (Retrieval-Augmented Generation) system for the Georgetown University Data Science and Analytics (DSAN) program. This repository showcases a design pattern for building and deploying LangGraph agents with a progression from local development to serverless deployment. We crawl the [DSAN](https://analytics.georgetown.edu/) website and use it to provide answers to general questions about different courses. Question such as _Is dsan 6000 a prereq for 6725?_, _is there a course on bioinformatics?_, _how many core courses are there?_ and so on and so forth.
+
+
+We use:
+
+1. Use [firecrawl.dev](https://www.firecrawl.dev/) and ingest the [data](data/documents_1.json) in a local [`FAISS`](https://python.langchain.com/docs/integrations/vectorstores/faiss/) index.
+1. Amazon Bedrock for LLMs.
+1. LangGraph for Agents and LangChain for RAG.
 
 ## System Architecture
 
@@ -9,7 +16,6 @@ graph LR
     subgraph "Development"
         A["Agent Building"] --> B["Open Source Frameworks"]
         B --> C1["LangGraph"]
-        B --> C2["LlamaIndex"]
         B --> C3["CrewAI"]
     end
     
@@ -20,10 +26,7 @@ graph LR
     
     subgraph "AWS Deployment"
         E --> F["AWS Services"]
-        F --> G1["Lambda"]
-        F --> G2["Fargate"]
-        F --> G3["ECS"]
-        F --> G4["EC2"]
+        F --> G1["AWS Lambda & Amazon API Gateway"]
     end
     
     classDef dev fill:#d1f0ff,stroke:#0077b6
