@@ -3,39 +3,57 @@
 A LangGraph-based RAG (Retrieval-Augmented Generation) system for the Georgetown University Data Science and Analytics (DSAN) program. This repository showcases a design pattern for building and deploying LangGraph agents with a progression from local development to serverless deployment. We crawl the [DSAN](https://analytics.georgetown.edu/) website and use it to provide answers to general questions about different courses. Question such as _Is dsan 6000 a prereq for 6725?_, _is there a course on bioinformatics?_, _how many core courses are there?_ and so on and so forth.
 
 
-We use:
+We use the following tools and technologies:
 
-1. Use [firecrawl.dev](https://www.firecrawl.dev/) and ingest the [data](data/documents_1.json) in a local [`FAISS`](https://python.langchain.com/docs/integrations/vectorstores/faiss/) index.
-1. Amazon Bedrock for LLMs.
-1. LangGraph for Agents and LangChain for RAG.
+1. [Firecrawl.dev](https://www.firecrawl.dev/) and ingest the [data](data/documents_1.json) in a local [`FAISS`](https://python.langchain.com/docs/integrations/vectorstores/faiss/) index.
+1. [Amazon Bedrock](https://aws.amazon.com/bedrock/) for LLMs, Amazon API gateway and AWS Lambda for hosting.
+1. [LangGraph](https://www.langchain.com/langgraph) for Agents and LangChain for RAG.
+
+## Demo video
+
+![DSAN assistant demo](img/demo.gif)
 
 ## System Architecture
 
 ```mermaid
 graph LR
-    subgraph "Development"
-        A["Agent Building"] --> B["Open Source Frameworks"]
-        B --> C1["LangGraph"]
-        B --> C3["CrewAI"]
+    %% Agent Building section
+    A1["LangGraph"] --> D["FastAPI"]
+    A2["Streamlit"] --> D
+    A3["Amazon Bedrock"] --> D
+    
+    %% API & Packaging section
+    D --> E["Docker Container"]
+    
+    %% AWS Deployment section
+    E --> F["AWS Services"]
+    F --> G1["AWS Lambda & Amazon API Gateway"]
+    
+    %% Subgraph definitions
+    subgraph "Agent Building"
+        A1
+        A2
+        A3
     end
     
     subgraph "API & Packaging"
-        C1 & C2 & C3 --> D["FastAPI"]
-        D --> E["Docker Container"]
+        D
+        E
     end
     
     subgraph "AWS Deployment"
-        E --> F["AWS Services"]
-        F --> G1["AWS Lambda & Amazon API Gateway"]
+        F
+        G1
     end
     
+    %% Styling
     classDef dev fill:#d1f0ff,stroke:#0077b6
     classDef mid fill:#ffe8d1,stroke:#b66300
     classDef aws fill:#ffd1e8,stroke:#b6007a
     
-    class A,B,C1,C2,C3 dev
+    class A,B,C1,C3 dev
     class D,E mid
-    class F,G1,G2,G3,G4 aws
+    class F,G1 aws
 ```
 
 ## Dev Workflow
@@ -90,8 +108,8 @@ This project demonstrates a complete workflow for developing and deploying AI ag
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd gtown-course-finder
+git https://github.com/yourusername/dsan-assistant
+cd dsan-assistant
 ```
 
 ### 2. Environment Setup
@@ -117,12 +135,6 @@ export PATH="$HOME/.local/bin:$PATH"
 uv venv && source .venv/bin/activate && uv pip install --requirement pyproject.toml
 ```
 
-Alternatively, you can install from requirements.txt:
-
-```bash
-uv pip install -r requirements.txt
-```
-
 ### 4. Build the Vector Index
 
 Before running the application, you need to build the vector index from the source documents:
@@ -138,7 +150,7 @@ This will create a FAISS index in the `indexes/dsan_index` directory.
 ### Run the FastAPI Server
 
 ```bash
-uvicorn app.server:app --host 0.0.0.0 --port 8000 --reload
+langchain serve
 ```
 
 ### Run the Streamlit Frontend
@@ -191,32 +203,6 @@ Once deployed, you can connect the Streamlit frontend to the deployed API:
 ```bash
 streamlit run chatbot.py -- --api-server-url https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/prod/generate
 ```
-
-## Running in Docker
-
-This project folder includes a Dockerfile that allows you to easily build and host your LangServe app.
-
-### Building the Image
-
-To build the image, you simply:
-
-```shell
-docker build . -t gtown-course-finder
-```
-
-If you tag your image with something other than `gtown-course-finder`,
-note it for use in the next step.
-
-### Running the Image Locally
-
-To run the image, you'll need to include any environment variables
-necessary for your application.
-
-```shell
-docker run -p 8080:8080 gtown-course-finder
-```
-
-Note: AWS credentials for Bedrock access are automatically configured when running in AWS Lambda. For local development, ensure your AWS credentials are properly configured in your environment.
 
 ## Project Structure
 

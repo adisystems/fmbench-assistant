@@ -1,13 +1,14 @@
 import re
 import sys
 import time
+import datetime
 import requests
 import argparse
 import streamlit as st
 
 # Set page configuration
 st.set_page_config(
-    page_title="Georgetown DSAN Program Agent",
+    page_title="Georgetown DSAN Assistant",
     page_icon="🐶",  # Bulldog emoji (closest to Hoya mascot)
     layout="centered"
 )
@@ -42,6 +43,21 @@ st.markdown("""
         margin-left: auto;
         align-self: flex-end;
         color: #041E42;
+        white-space: pre-line;  /* This helps preserve line breaks */
+    }
+    .timestamp {
+        font-size: 10px;
+        color: #6A6A6A;
+        margin-top: 2px;
+        margin-bottom: 8px;
+    }
+    .user-timestamp {
+        text-align: left;
+        margin-left: 5px;
+    }
+    .assistant-timestamp {
+        text-align: right;
+        margin-right: 5px;
     }
     .small-text {
         font-size: 12px;
@@ -88,30 +104,52 @@ if 'awaiting_response' not in st.session_state:
 if 'thread_id' not in st.session_state:
     st.session_state.thread_id = 0
 
+# Get command line arguments safely
 def get_args():
-    """Parse command line arguments using argparse."""
     parser = argparse.ArgumentParser(description="Streamlit app with command line arguments")
+    parser.add_argument("--api-server-url", type=str, default='http://localhost:8000/generate', 
+                       help="API server URL")
     
-    # Add your arguments
-    parser.add_argument("--api-server-url", type=str, help="API server URL", default='http://localhost:8000/generate')
-    
-    args_idx = 1 # start after -- in the command line "streamlit run chatbot.py -- --api-server-url https://zh0b435435.execute-api.us-east-1.amazonaws.com/prod/generate"
-    args = parser.parse_args(sys.argv[args_idx:])
-    return args
+    # Handle argument parsing in a way that works with Streamlit
+    try:
+        args_list = []
+        # Look for arguments after the script name or after "--"
+        if "--" in sys.argv:
+            args_idx = sys.argv.index("--") + 1
+            args_list = sys.argv[args_idx:]
+        elif len(sys.argv) > 1:
+            # Try to extract args that look like they're meant for our script
+            for i, arg in enumerate(sys.argv[1:], 1):
+                if arg.startswith("--api-server-url"):
+                    if "=" in arg:
+                        args_list.append(arg)
+                    elif i < len(sys.argv) - 1:
+                        args_list.extend([arg, sys.argv[i+1]])
+        
+        return parser.parse_args(args_list)
+    except Exception as e:
+        # Fallback to default if any issues with arg parsing
+        st.warning(f"Argument parsing issue: {str(e)}. Using default API URL.")
+        return parser.parse_args([])
 
-# Get the arguments (skip the first one, which is the script name)
+# Get the arguments
 args = get_args()
-#st.write(f"Arguments: {args}")
-API_URL =  args.api_server_url
-
+API_URL = args.api_server_url
 
 # Define a helper function for rerunning safely
 def safe_rerun():
     try:
-        st.experimental_rerun()
-    except AttributeError:
-        # If experimental_rerun is not available, do nothing.
-        pass
+        st.rerun()  # Use the newer st.rerun() instead of experimental_rerun
+    except:
+        try:
+            st.experimental_rerun()  # Fallback for older Streamlit versions
+        except:
+            pass  # If neither works, just continue
+
+def get_current_timestamp():
+    """Get current timestamp in a readable format."""
+    now = datetime.datetime.now()
+    return now.strftime("%Y-%m-%d %H:%M:%S")
 
 def format_message(message_content):
     """Format message content for better display with HTML."""
@@ -124,26 +162,35 @@ def format_message(message_content):
     content = re.sub(r'(RESOURCES:?\s*){2,}', r'RESOURCES:', content, flags=re.IGNORECASE)
     content = re.sub(r'(COURSE OBJECTIVES:?\s*){2,}', r'COURSE OBJECTIVES:', content, flags=re.IGNORECASE)
     content = re.sub(r'(REQUIRED MATERIALS:?\s*){2,}', r'REQUIRED MATERIALS:', content, flags=re.IGNORECASE)
+    
     # Bold certain labels
     content = re.sub(r'(Course|Department|Professor|Schedule|Credits|Location):\s*([^\n]+)', 
-                     r'<b>\1:</b> \2', 
+                     r'<strong>\1:</strong> \2', 
                      content)
+    
     # Format section headers
     content = re.sub(r'(COURSE DESCRIPTION|PREREQUISITES|COURSE OBJECTIVES|REQUIRED MATERIALS|ADDITIONAL INFORMATION|RESOURCES):', 
-                     r'<h4 style="color: #041E42;">\1</h4>', 
+                     r'<h4 style="color: #041E42; margin-top: 16px; margin-bottom: 8px;">\1</h4>', 
                      content)
-    # Replace newlines with HTML breaks
-    content = content.replace('\n\n', '<br><br>').replace('\n', '<br>')
+    
+    # Make double line breaks more visually distinct
+    content = content.replace('\n\n', '<br><br>')
+    
+    # Replace single newlines with HTML breaks
+    content = content.replace('\n', '<br>')
+    
     return content
 
 def stream_response(question):
     """Make API request to get the chatbot response and simulate streaming."""
     st.session_state.awaiting_response = True
-    st.session_state.messages.append({"role": "user", "content": question})
+    
+    # Add the user's question to the conversation history with timestamp
+    timestamp = get_current_timestamp()
+    st.session_state.messages.append({"role": "user", "content": question, "timestamp": timestamp})
     
     # Create a placeholder for the streaming response
     message_placeholder = st.empty()
-    full_response = ""
     
     try:
         # Updated payload to include thread_id for conversation memory
@@ -153,7 +200,7 @@ def stream_response(question):
         }
         
         with st.spinner("Searching for DSAN program information..."):
-            response = requests.post(args.api_server_url, json=payload)
+            response = requests.post(API_URL, json=payload)
             if response.status_code == 200:
                 result = response.json()
                 # Updated to handle the new response format
@@ -164,22 +211,40 @@ def stream_response(question):
                 if ai_messages:
                     ai_response = ai_messages[-1]["content"]
                     
-                    words = ai_response.split()
-                    # Simulate streaming by showing a few words at a time
-                    for i in range(0, len(words), 3):
-                        chunk_size = min(3, len(words) - i)
-                        full_response += " ".join(words[i:i+chunk_size]) + " "
-                        if i % 9 == 0 or i >= len(words) - 3:
-                            formatted_response = format_message(full_response)
-                            message_placeholder.markdown(f'<div class="assistant-message">{formatted_response}</div>', unsafe_allow_html=True)
-                            time.sleep(0.1)
-                    st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                    # Apply formatting to the complete response once
+                    formatted_full_response = format_message(ai_response)
+                    
+                    # Get timestamp for the assistant's response
+                    response_timestamp = get_current_timestamp()
+                    
+                    # Store original with timestamp for session
+                    st.session_state.messages.append({
+                        "role": "assistant", 
+                        "content": ai_response,
+                        "timestamp": response_timestamp
+                    })
+                    
+                    # Display the entire formatted response at once
+                    message_placeholder.markdown(
+                        f'<div class="assistant-message">{formatted_full_response}</div>' + 
+                        f'<div class="timestamp assistant-timestamp">{response_timestamp}</div>', 
+                        unsafe_allow_html=True
+                    )
                 else:
-                    message_placeholder.markdown(f'<div class="system-message">No response from the assistant.</div>', unsafe_allow_html=True)
+                    message_placeholder.markdown(
+                        f'<div class="system-message">No response from the assistant.</div>', 
+                        unsafe_allow_html=True
+                    )
             else:
-                message_placeholder.markdown(f'<div class="system-message">Error: {response.status_code} - {response.text}</div>', unsafe_allow_html=True)
+                message_placeholder.markdown(
+                    f'<div class="system-message">Error: {response.status_code} - {response.text}</div>', 
+                    unsafe_allow_html=True
+                )
     except Exception as e:
-        message_placeholder.markdown(f'<div class="system-message">Error: {str(e)}</div>', unsafe_allow_html=True)
+        message_placeholder.markdown(
+            f'<div class="system-message">Error: {str(e)}</div>', 
+            unsafe_allow_html=True
+        )
     
     st.session_state.awaiting_response = False
     safe_rerun()
@@ -187,12 +252,23 @@ def stream_response(question):
 def main():
     # Display conversation history
     for message in st.session_state.messages:
+        timestamp = message.get("timestamp", "")
+        
         if message["role"] == "user":
-            st.markdown(f'<div class="user-message">{message["content"]}</div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="user-message">{message["content"]}</div>' + 
+                f'<div class="timestamp user-timestamp">{timestamp}</div>', 
+                unsafe_allow_html=True
+            )
         else:
             formatted_content = format_message(message["content"])
-            st.markdown(f'<div class="assistant-message">{formatted_content}</div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="assistant-message">{formatted_content}</div>' + 
+                f'<div class="timestamp assistant-timestamp">{timestamp}</div>', 
+                unsafe_allow_html=True
+            )
     
+    # Add some spacing
     st.write("")
     st.write("")
     
@@ -235,4 +311,5 @@ Information may not be complete or up-to-date. Always verify details with offici
 """, unsafe_allow_html=True)
 
 # Run the main app flow
-main()
+if __name__ == "__main__":
+    main()
