@@ -56,7 +56,25 @@ graph LR
     class F,G1 aws
 ```
 
-## Dev Workflow
+
+## Architecture Overview
+
+This project demonstrates a complete workflow for developing and deploying AI agents:
+
+1. **Local Development**: Build and test the agent locally
+2. **FastAPI Server**: Convert the agent to a FastAPI application
+3. **Docker Containerization**: Package the application in a Docker container
+4. **AWS Lambda Deployment**: Deploy the containerized application to AWS Lambda with API Gateway
+
+## Components
+
+- **RAG System**: Uses LangChain, FAISS, and AWS Bedrock to provide information about Georgetown's DSAN program
+- **LangGraph Agent**: ReAct agent pattern with tools for retrieving program information
+- **Streamlit Frontend**: User-friendly chat interface for interacting with the agent
+- **FastAPI Backend**: Serves the agent via HTTP endpoints
+- **AWS Lambda Integration**: Serverless deployment with API Gateway
+
+### Dev workflow
 
 ```mermaid
 graph TD
@@ -78,22 +96,6 @@ graph TD
     class G,H,I deploy
 ```
 
-## Architecture Overview
-
-This project demonstrates a complete workflow for developing and deploying AI agents:
-
-1. **Local Development**: Build and test the agent locally
-2. **FastAPI Server**: Convert the agent to a FastAPI application
-3. **Docker Containerization**: Package the application in a Docker container
-4. **AWS Lambda Deployment**: Deploy the containerized application to AWS Lambda with API Gateway
-
-## Components
-
-- **RAG System**: Uses LangChain, FAISS, and AWS Bedrock to provide information about Georgetown's DSAN program
-- **LangGraph Agent**: ReAct agent pattern with tools for retrieving program information
-- **Streamlit Frontend**: User-friendly chat interface for interacting with the agent
-- **FastAPI Backend**: Serves the agent via HTTP endpoints
-- **AWS Lambda Integration**: Serverless deployment with API Gateway
 
 ## Prerequisites
 
@@ -189,6 +191,8 @@ Use the deployment script to create or update the Lambda function and API Gatewa
 ```bash
 python deploy.py --function-name dsan-assistant --role-arn YOUR_LAMBDA_ROLE_ARN --api-gateway
 ```
+
+The IAM role you need to use for the AWS Lambda needs to have Amazon Bedrock access (for example via [`AmazonBedrockFullAccess`](https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AmazonBedrockFullAccess.html)) to use the models available via Amazon Bedrock and the models need to be enabled within your AWS account, see instructions available [here](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html).
 
 This will:
 1. Create/update a Lambda function using the Docker image
