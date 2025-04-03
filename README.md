@@ -74,6 +74,24 @@ This project demonstrates a complete workflow for developing and deploying AI ag
 
 ### Dev workflow
 
+
+1. **Data Collection**:
+   - Crawl data using firecrawl.dev. Save the data as JSON and place it as [`documents_1.json`](data/documents_1.json) in the `data` folder.
+   - Place the crawled data in the data folder
+
+2. **Index Building**:
+   - Run build_index.py to create the FAISS vector index
+
+3. **Local Testing**:
+   - Run the FastAPI server with `langchain serve`
+   - Test the API endpoints with the local webserver
+   - Test the user interface with Streamlit
+
+4. **Deployment**:
+   - Run python deploy.py to deploy to AWS Lambda and API Gateway
+   - Test the deployed application by running Streamlit with the API Gateway endpoint
+
+
 ```mermaid
 graph TD
     A[Crawl data with firecrawl.dev] --> B[Place data in data folder]
@@ -229,24 +247,6 @@ gtown-course-finder/
 ├── README.md                 # Project documentation
 └── requirements.txt          # Python dependencies
 ```
-
-## Development Workflow
-
-1. **Data Collection**:
-   - Crawl data using firecrawl.dev. Save the data as JSON and place it as [`documents_1.json`](data/documents_1.json) in the `data` folder.
-   - Place the crawled data in the data folder
-
-2. **Index Building**:
-   - Run build_index.py to create the FAISS vector index
-
-3. **Local Testing**:
-   - Run the FastAPI server with `langchain serve`
-   - Test the API endpoints with the local webserver
-   - Test the user interface with Streamlit
-
-4. **Deployment**:
-   - Run python deploy.py to deploy to AWS Lambda and API Gateway
-   - Test the deployed application by running Streamlit with the API Gateway endpoint
 
 ## Key Features
 
