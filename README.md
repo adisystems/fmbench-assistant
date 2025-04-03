@@ -13,7 +13,8 @@ We use the following tools and technologies:
 
 ![DSAN assistant demo](img/demo.gif)
 
-## System Architecture
+
+## Architecture Overview
 
 ```mermaid
 graph LR
@@ -55,9 +56,6 @@ graph LR
     class D,E mid
     class F,G1 aws
 ```
-
-
-## Architecture Overview
 
 This project demonstrates a complete workflow for developing and deploying AI agents:
 
@@ -235,7 +233,7 @@ gtown-course-finder/
 ## Development Workflow
 
 1. **Data Collection**:
-   - Crawl data using firecrawl.dev
+   - Crawl data using firecrawl.dev. Save the data as JSON and place it as [`documents_1.json`](data/documents_1.json) in the `data` folder.
    - Place the crawled data in the data folder
 
 2. **Index Building**:
