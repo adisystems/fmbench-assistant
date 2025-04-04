@@ -1,31 +1,20 @@
 import os
-import json
-import boto3
 import logging
 from pathlib import Path
 from dotenv import load_dotenv
-from botocore.config import Config
 from pydantic import BaseModel, Field
-from langchain.schema import Document
+from colorama import init, Fore
+from botocore.config import Config
 from langchain_core.tools import tool
-from starlette.requests import Request
-from colorama import init, Fore, Style
+from utils import create_bedrock_client
+from dsan_rag_setup import DSANRagSetup
 from fastapi import FastAPI, HTTPException
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from langchain_aws import ChatBedrockConverse
 from fastapi.responses import RedirectResponse
+from guardrails import BedrockGuardrailManager
 from langgraph.prebuilt import create_react_agent
-from langchain_community.vectorstores import FAISS
-from langchain.chains import create_retrieval_chain
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_aws.embeddings.bedrock import BedrockEmbeddings
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from botocore.session import get_session
-from botocore.credentials import RefreshableCredentials
-from dsan_rag_setup import DSANRagSetup
-from guardrails import get_or_create_guardrail
-
 
 
 # ----------------------------
@@ -85,8 +74,9 @@ except Exception as e:
 # Global instance of the RAG setup
 _rag_system = None
 _react_agent = None
-guardrail_id = None
-guardrail_version = None
+_guardrail_id = None
+_guardrail_version = None
+_bedrock_client = None
 
 # ----------------------------
 # Tool Definition
@@ -109,8 +99,9 @@ def get_dsan_info(
     global _rag_system
     
     # Initialize the RAG system if it hasn't been set up yet
-    if _rag_system is None:        
-        _rag_system = DSANRagSetup(bedrock_role_arn="arn:aws:iam::605134468121:role/BedrockCrossAccount2").setup()
+    if _rag_system is None:
+        bedrock_role_arn = os.environ.get("BEDROCK_ROLE_ARN")
+        _rag_system = DSANRagSetup(bedrock_role_arn=bedrock_role_arn).setup()
         
     # Use the RAG system to answer the question
     result = _rag_system.query(question)
@@ -161,8 +152,9 @@ async def generate_answer(request: GenerateRequest):
     It maintains conversation history using thread_id and leverages AWS Bedrock models.
     """
     global _react_agent
-    global guardrail_id
-    global guardrail_version
+    global _guardrail_id
+    global _guardrail_version
+    global _bedrock_client
     
     logger.info(f"Received request: {request}")
     try:
@@ -186,18 +178,25 @@ async def generate_answer(request: GenerateRequest):
             }
         )
 
-        bedrock = boto3.client("bedrock", region_name=region)
-        bedrock_client = boto3.client("bedrock-runtime", region_name=region, config=config)
-        if guardrail_id is None or guardrail_version is None:
-            guardrail_id, guardrail_version = get_or_create_guardrail(bedrock)
+        # create guardrails if not created already 
+        bedrock_role_arn = os.environ.get("BEDROCK_ROLE_ARN")
+        logger.info(f"bedrock_role_arn={bedrock_role_arn}")
+        if _guardrail_id is None or _guardrail_version is None:
+            # Basic usage with default configuration
+            manager = BedrockGuardrailManager(region="us-east-1", bedrock_role_arn=bedrock_role_arn)
+            _guardrail_id, _guardrail_version = manager.get_or_create_guardrail()
+        
         guardrail_config = {
-        "guardrailIdentifier": guardrail_id,
-        "guardrailVersion": guardrail_version,
-        "trace": "enabled"
+            "guardrailIdentifier": _guardrail_id,
+            "guardrailVersion": _guardrail_version,
+            "trace": "enabled"
         }
+        logger.info(f"guardrail_config={guardrail_config}")
 
+        if _bedrock_client is None:
+            _bedrock_client = create_bedrock_client(bedrock_role_arn, "bedrock-runtime", region)
         model = ChatBedrockConverse(
-            client=bedrock_client,
+            client=_bedrock_client,
             model=model_id,
             guardrail_config=guardrail_config,
         )

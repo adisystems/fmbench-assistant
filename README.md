@@ -150,7 +150,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.local/bin:$PATH"
 
 # Create a virtual environment and install dependencies
-uv venv && source .venv/bin/activate && uv pip install --requirement pyproject.toml
+uv venv --python 3.11 && source .venv/bin/activate && uv pip install --requirement pyproject.toml
 ```
 
 ### 4. Build the Vector Index
@@ -206,6 +206,12 @@ Use the deployment script to create or update the Lambda function and API Gatewa
 
 ```bash
 python deploy.py --function-name dsan-assistant --role-arn YOUR_LAMBDA_ROLE_ARN --api-gateway
+```
+
+If you want to your Amazon Bedrock in a cross-account way i.e. the Lambda exists in say Account A but you want to use Amazon Bedrock in Account B then use the following command line
+
+```bash
+python deploy.py --function-name dsan-assistant --role-arn YOUR_LAMBDA_ROLE_ARN  --bedrock-role-arn YOUR_ACCOUNT_B_BEDROCK_ROLE_ARN--api-gateway
 ```
 
 The IAM role you need to use for the AWS Lambda needs to have Amazon Bedrock access (for example via [`AmazonBedrockFullAccess`](https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AmazonBedrockFullAccess.html)) to use the models available via Amazon Bedrock and the models need to be enabled within your AWS account, see instructions available [here](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html).

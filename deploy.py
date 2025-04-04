@@ -99,7 +99,7 @@ def build_and_push_container():
         print(f"Error during build and push process: {str(e)}")
         return None
 
-def deploy_lambda_container(ecr_image_uri, function_name, role_arn, region="us-east-1", memory_size=1024, timeout=90, api_gateway=False, api_name=None, stage_name="prod"):
+def deploy_lambda_container(ecr_image_uri, function_name, role_arn, bedrock_role_arn, region="us-east-1", memory_size=1024, timeout=90, api_gateway=False, api_name=None, stage_name="prod"):
     """
     Deploy a container from ECR as a Lambda function with optional API Gateway
     
@@ -107,6 +107,7 @@ def deploy_lambda_container(ecr_image_uri, function_name, role_arn, region="us-e
         ecr_image_uri (str): URI of the ECR image to deploy
         function_name (str): Name of the Lambda function
         role_arn (str): ARN of the Lambda execution role
+        bedrock_role_arn (str): ARN of the role to use when invoking Bedrock models
         region (str): AWS region to deploy the Lambda function
         memory_size (int): Memory size in MB for the Lambda function
         timeout (int): Timeout in seconds for the Lambda function
@@ -176,6 +177,13 @@ def deploy_lambda_container(ecr_image_uri, function_name, role_arn, region="us-e
                         raise e
         else:
             # Create new function
+            env = None
+            if bedrock_role_arn is not None:
+                env = {
+                    'Variables': {
+                        'BEDROCK_ROLE_ARN': bedrock_role_arn
+                    }
+                }
             response = lambda_client.create_function(
                 FunctionName=function_name,
                 PackageType='Image',
@@ -184,7 +192,8 @@ def deploy_lambda_container(ecr_image_uri, function_name, role_arn, region="us-e
                 },
                 Role=role_arn,
                 Timeout=timeout,
-                MemorySize=memory_size
+                MemorySize=memory_size,
+                Environment=env
             )
         
         # Wait for function to be active
@@ -521,6 +530,7 @@ def main():
     parser.add_argument('--image-uri', required=False, help='ECR image URI to deploy (if not provided, will build and push container)')
     parser.add_argument('--function-name', required=True, help='Name for the Lambda function')
     parser.add_argument('--role-arn', required=True, help='ARN of the Lambda execution role')
+    parser.add_argument('--bedrock-role-arn', required=False, help='ARN of the role to use when invoking Bedrock models')
     parser.add_argument('--region', default='us-east-1', help='AWS region to deploy the Lambda function (default: us-east-1)')
     parser.add_argument('--memory', type=int, default=2048, help='Memory size in MB (default: 2048)')
     parser.add_argument('--timeout', type=int, default=300, help='Timeout in seconds (default: 300)')
@@ -547,6 +557,7 @@ def main():
         ecr_image_uri, 
         args.function_name, 
         args.role_arn,
+        args.bedrock_role_arn,
         args.region,
         args.memory,
         args.timeout,
