@@ -161,6 +161,9 @@ async def generate_answer(request: GenerateRequest):
     It maintains conversation history using thread_id and leverages AWS Bedrock models.
     """
     global _react_agent
+    global guardrail_id
+    global guardrail_version
+    
     logger.info(f"Received request: {request}")
     try:
         body = request.model_dump()
