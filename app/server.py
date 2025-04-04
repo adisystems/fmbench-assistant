@@ -44,18 +44,18 @@ def get_or_create_guardrail(bedrock_client):
             description='Ensures the chatbot provides accurate information based on DSAN program materials while maintaining academic integrity and appropriate boundaries.',
             topicPolicyConfig={
                 'topicsConfig': [
-                    {
-                        'name': 'Non-Public Information',
-                        'definition': 'Providing information that is not available on public DSAN program webpages or making claims beyond official program documentation.',
-                        'examples': [
-                            'What are the private discussions in faculty meetings?',
-                            'How many students were rejected last year?',
-                            'What is the exact acceptance rate?',
-                            'Can you share internal program metrics?',
-                            'Who are the students currently enrolled in DSAN?'
-                        ],
-                        'type': 'DENY'
-                    },
+                    # {
+                    #     'name': 'Non-Public Information',
+                    #     'definition': 'Providing information that is not available on public DSAN program webpages or making claims beyond official program documentation.',
+                    #     'examples': [
+                    #         'What are the private discussions in faculty meetings?',
+                    #         'How many students were rejected last year?',
+                    #         'What is the exact acceptance rate?',
+                    #         'Can you share internal program metrics?',
+                    #         'Who are the students currently enrolled in DSAN?'
+                    #     ],
+                    #     'type': 'DENY'
+                    # },
                     {
                         'name': 'Future Predictions',
                         'definition': 'Making predictions or promises about future program changes, admissions, or course offerings not stated in official DSAN documentation.',
