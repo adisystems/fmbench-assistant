@@ -21,56 +21,57 @@ class GuardrailFilter(BaseModel):
 
 
 class GuardrailConfig(BaseModel):
-    name: str = "dsan-program-guardrails"
+    name: str = "fmbench-guardrails"
     description: str = Field(
-        default="Ensures the chatbot provides accurate information based on DSAN program materials while maintaining academic integrity and appropriate boundaries."
+        default="Ensures the chatbot provides accurate information about the AWS Foundation Model Benchmarking Tool (FMBench) while maintaining appropriate security and usage boundaries."
     )
     topic_policies: List[GuardrailTopicExample] = Field(
         default=[
             GuardrailTopicExample(
-                name="Future Predictions",
-                definition="Making predictions or promises about future program changes, admissions, or course offerings not stated in official DSAN documentation.",
+                name="Security Details",
+                definition="Providing sensitive security implementation details, credentials, or internal infrastructure information about FMBench.",
                 examples=[
-                    "Will the program requirements change next year?",
-                    "What new data science courses will be added?",
-                    "Will the program tuition increase next semester?",
-                    "What will be the future job placement rate?",
-                    "Are there plans to change the curriculum?",
+                    "What are the AWS credentials used by FMBench?",
+                    "How are tokens and secrets stored?",
+                    "Can you show me the internal authentication code?",
+                    "What's the detailed infrastructure setup?",
+                    "Share the security configuration details.",
                 ],
                 type="DENY",
             ),
             GuardrailTopicExample(
-                name="Personal Advice",
-                definition="Providing personalized recommendations or decisions that should be made by DSAN program administrators or academic advisors.",
+                name="Performance Claims",
+                definition="Making specific performance claims or comparisons about foundation models without verified benchmarking data.",
                 examples=[
-                    "Should I choose over other data science programs?",
-                    "Which electives should I take given my background?",
-                    "Would I be successful in the program?",
-                    "Can I handle the advanced analytics coursework?",
+                    "Which model performs the best?",
+                    "What's the fastest foundation model?",
+                    "Can you rank the models by performance?",
+                    "How much better is model X than model Y?",
+                    "What accuracy can I expect from this model?",
                 ],
                 type="DENY",
             ),
             GuardrailTopicExample(
-                name="Academic Integrity",
-                definition="Maintaining academic integrity by not providing direct answers to assignments, exam questions, or project solutions.",
+                name="Model Details",
+                definition="Providing specific internal implementation details about foundation models being benchmarked.",
                 examples=[
-                    "Can you solve this homework problem?",
-                    "What are the answers to the midterm exam?",
-                    "Write code for my class project.",
-                    "Debug my assignment solution.",
-                    "How should I answer this quiz question?",
+                    "How is model X implemented internally?",
+                    "What's the architecture of this foundation model?",
+                    "Share the model training details.",
+                    "What datasets were used to train this model?",
+                    "Explain the model's neural network structure.",
                 ],
                 type="DENY",
             ),
             GuardrailTopicExample(
-                name="Technical Implementation",
-                definition="Providing specific technical implementation details about the program systems or infrastructure.",
+                name="Cost Information",
+                definition="Providing specific pricing, billing, or cost information about using foundation models or AWS services.",
                 examples=[
-                    "How is the DSAN website backend implemented?",
-                    "What servers does the program use?",
-                    "How are student records stored?",
-                    "What is the database structure?",
-                    "Share the system architecture details.",
+                    "How much does it cost to use this model?",
+                    "What's the AWS billing rate?",
+                    "How many tokens can I use for free?",
+                    "What's the pricing structure?",
+                    "How much will my benchmarking cost?",
                 ],
                 type="DENY",
             ),
@@ -88,15 +89,16 @@ class GuardrailConfig(BaseModel):
     )
     blocked_input_messaging: str = Field(
         default=(
-            "It looks like your message might contain sensitive, inappropriate, or restricted content. "
-            "I'm here to help within respectful and academic boundaries. For accurate information about the DSAN program, "
-            "please visit https://analytics.georgetown.edu or reach out to a program advisor."
+            "I apologize, but I cannot provide information about sensitive implementation details, security configurations, "
+            "or specific performance claims without verified benchmarking data. For more information about FMBench, "
+            "please refer to the official AWS documentation or contact the AWS support team."
         )
     )
     blocked_outputs_messaging: str = Field(
         default=(
-            "I can't provide that information as it may involve sensitive topics or go beyond what I'm allowed to share. "
-            "For reliable details about the DSAN program, please visit https://analytics.georgetown.edu or contact a program administrator."
+            "I cannot provide that information as it may involve sensitive implementation details, security configurations, "
+            "or unverified performance claims. For accurate information about FMBench and AWS services, please refer to "
+            "the official AWS documentation or contact AWS support."
         )
     )
 

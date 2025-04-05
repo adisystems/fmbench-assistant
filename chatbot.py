@@ -8,8 +8,8 @@ import streamlit as st
 
 # Set page configuration
 st.set_page_config(
-    page_title="Georgetown DSAN Assistant",
-    page_icon="🐶",  # Bulldog emoji (closest to Hoya mascot)
+    page_title="FMBench Assistant",
+    page_icon="📊",  # Chart emoji representing benchmarking
     layout="centered"
 )
 
@@ -23,7 +23,7 @@ st.markdown("""
     }
     .stTextInput > div > div > input {
         font-size: 16px;
-        border-color: #041E42;
+        border-color: #232F3E;  # AWS color
     }
     .user-message {
         background-color: #C0C0C0;
@@ -32,7 +32,7 @@ st.markdown("""
         margin: 10px 0;
         max-width: 80%;
         align-self: flex-start;
-        color: #041E42;
+        color: #232F3E;
     }
     .assistant-message {
         background-color: #E0E0E0;
@@ -42,7 +42,7 @@ st.markdown("""
         max-width: 80%;
         margin-left: auto;
         align-self: flex-end;
-        color: #041E42;
+        color: #232F3E;
         white-space: pre-line;  /* This helps preserve line breaks */
     }
     .timestamp {
@@ -64,7 +64,7 @@ st.markdown("""
         color: #6A6A6A;
     }
     h1 {
-        color: #041E42; /* Georgetown Blue */
+        color: #232F3E; /* AWS Blue */
     }
     .system-message {
         color: #6A6A6A;
@@ -72,11 +72,11 @@ st.markdown("""
         text-align: center;
     }
     .stButton button {
-        background-color: #041E42;
+        background-color: #232F3E;
         color: white;
     }
     .stButton button:hover {
-        background-color: #0A3A6D;
+        background-color: #31465F;
         color: white;
     }
     .input-container {
@@ -91,8 +91,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # App title and description
-st.title("Georgetown DSAN Program Agent")
-st.markdown("Ask questions about Georgetown University's Data Science and Analytics (DSAN) program. You can also ask follow-up questions about information you've already inquired about.")
+st.title("AWS FMBench Assistant")
+st.markdown("Ask questions about the AWS Foundation Model Benchmarking Tool (FMBench). You can ask about its features, usage, and general capabilities while respecting security and implementation boundaries.")
 
 # Initialize session state variables
 if 'messages' not in st.session_state:
@@ -199,7 +199,7 @@ def stream_response(question):
             "thread_id": st.session_state.thread_id
         }
         
-        with st.spinner("Searching for DSAN program information..."):
+        with st.spinner("Searching for FMBench information..."):
             response = requests.post(API_URL, json=payload)
             if response.status_code == 200:
                 result = response.json()
@@ -279,7 +279,7 @@ def main():
                 user_input = st.text_input(
                     "Continue the conversation:", 
                     key="user_question", 
-                    placeholder="Ask about the DSAN program at Georgetown..."
+                    placeholder="Ask about AWS FMBench features and capabilities..."
                 )
                 col1, col2 = st.columns([4, 1])
                 with col2:
@@ -305,8 +305,8 @@ def main():
 # Footer with small print
 st.markdown("""
 <div class="small-text">
-<p>This agent provides information about Georgetown University's DSAN program based on publicly available data. 
-Information may not be complete or up-to-date. Always verify details with official Georgetown resources.</p>
+<p>This agent provides information about AWS Foundation Model Benchmarking Tool (FMBench) based on publicly available documentation.
+For the most up-to-date information and specific implementation details, please refer to the official AWS documentation.</p>
 </div>
 """, unsafe_allow_html=True)
 
