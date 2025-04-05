@@ -9,7 +9,7 @@ RUN pip install -r requirements.txt
 RUN pip install -U boto3 botocore
 
 # Copy function code and data
-COPY dsan_rag_setup.py ${LAMBDA_TASK_ROOT}
+COPY fmbench_rag_setup.py ${LAMBDA_TASK_ROOT}
 COPY guardrails.py ${LAMBDA_TASK_ROOT}
 COPY utils.py ${LAMBDA_TASK_ROOT}
 COPY app/server.py ${LAMBDA_TASK_ROOT}/lambda.py

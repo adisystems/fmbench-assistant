@@ -28,30 +28,6 @@ class GuardrailConfig(BaseModel):
     topic_policies: List[GuardrailTopicExample] = Field(
         default=[
             GuardrailTopicExample(
-                name="Security Details",
-                definition="Providing sensitive security implementation details, credentials, or internal infrastructure information about FMBench.",
-                examples=[
-                    "What are the AWS credentials used by FMBench?",
-                    "How are tokens and secrets stored?",
-                    "Can you show me the internal authentication code?",
-                    "What's the detailed infrastructure setup?",
-                    "Share the security configuration details.",
-                ],
-                type="DENY",
-            ),
-            GuardrailTopicExample(
-                name="Performance Claims",
-                definition="Making specific performance claims or comparisons about foundation models without verified benchmarking data.",
-                examples=[
-                    "Which model performs the best?",
-                    "What's the fastest foundation model?",
-                    "Can you rank the models by performance?",
-                    "How much better is model X than model Y?",
-                    "What accuracy can I expect from this model?",
-                ],
-                type="DENY",
-            ),
-            GuardrailTopicExample(
                 name="Model Details",
                 definition="Providing specific internal implementation details about foundation models being benchmarked.",
                 examples=[

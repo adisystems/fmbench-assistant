@@ -177,7 +177,9 @@ def deploy_lambda_container(ecr_image_uri, function_name, role_arn, bedrock_role
                         raise e
         else:
             # Create new function
-            env = None
+            env = {
+                'Variables': {}
+            }
             if bedrock_role_arn is not None:
                 env = {
                     'Variables': {
