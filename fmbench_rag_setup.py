@@ -8,7 +8,7 @@ from botocore.config import Config
 from pydantic import BaseModel, Field
 from langchain.schema import Document
 from colorama import init, Fore, Style
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 from langchain_aws import ChatBedrockConverse
 from langchain_community.vectorstores import FAISS
 from langchain.chains import create_retrieval_chain
@@ -17,6 +17,7 @@ from langchain_aws.embeddings.bedrock import BedrockEmbeddings
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from botocore.session import get_session
 from botocore.credentials import RefreshableCredentials
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # ----------------------------
 # Setup Logging with Colorama
@@ -61,7 +62,6 @@ handler = logging.StreamHandler()
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-
 # ----------------------------
 # Load Environment Variables
 # ----------------------------
@@ -71,17 +71,16 @@ try:
 except Exception as e:
     logging.error("Error loading .env file: " + str(e))
 
-
-class DSANRagSetup(BaseModel):
+class FMBenchRagSetup(BaseModel):
     """
-    Pydantic model for DSAN RAG Setup that encapsulates the entire configuration and setup process
+    Pydantic model for FMBench RAG Setup that encapsulates the entire configuration and setup process
     """
     region: str = Field(default="us-east-1", description="AWS region to use for Amazon Bedrock")
     data_file_path: Path = Field(default=Path("data/documents_1.json"), description="Path to the documents data file")
-    response_model_id: str = Field(default="us.amazon.nova-micro-v1:0", description="Bedrock model ID to use") # us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+    response_model_id: str = Field(default="us.amazon.nova-micro-v1:0", description="Bedrock model ID to use")
     embedding_model_id: str = Field(default="amazon.titan-embed-text-v1", description="Amazon Bedrock embedding model to use")
     retriever_k: int = Field(default=5, description="Number of documents to retrieve")
-    vector_db_path: Optional[str] = Field(default=os.path.join("indexes", "dsan_index"), description="Path to load/save FAISS vector database")
+    vector_db_path: Optional[str] = Field(default=os.path.join("indexes", "fmbench_index"), description="Path to load/save FAISS vector database")
     bedrock_role_arn: Optional[str] = Field(default=None, description="ARN of the IAM role to assume for Bedrock cross-account access")
     
     # These will be initialized in the setup method
@@ -195,13 +194,21 @@ class DSANRagSetup(BaseModel):
             documents_data = json.loads(self.data_file_path.read_text())
             self.logger.info(f"Loaded {len(documents_data)} documents from {self.data_file_path}")
             
-            # Convert to Document objects
-            self.documents = [
+            # Create text splitter
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=4000,
+                chunk_overlap=200,
+                length_function=len,
+            )
+            
+            # Convert to Document objects and split into chunks
+            docs = [
                 Document(
-                    page_content=doc["markdown"], 
+                    page_content=doc["markdown"],
                     metadata=doc.get("metadata", {})
                 ) for doc in documents_data
             ]
+            self.documents = text_splitter.split_documents(docs)
             
             # Create vector store
             self.logger.info(f"Creating new vector store with {len(self.documents)} documents")
@@ -224,7 +231,7 @@ class DSANRagSetup(BaseModel):
         # Create prompt template
         system_prompt = (
             "You are a friendly and helpful AI assistant that answers questions about the "
-            "Data Science & Analytics (DSAN) program at Georgetown University. "
+            "AWS Foundation Model Benchmarking Tool (FMBench). "
             "Use the provided context to answer the question concisely. "
             "If you don't know, say 'I don't know'.\n\n"
             "{context}"
@@ -257,13 +264,21 @@ class DSANRagSetup(BaseModel):
         documents_data = json.loads(self.data_file_path.read_text())
         self.logger.info(f"Loaded {len(documents_data)} documents from {self.data_file_path}")
         
-        # Convert to Document objects
-        self.documents = [
+        # Create text splitter
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=4000,
+            chunk_overlap=200,
+            length_function=len,
+        )
+        
+        # Convert to Document objects and split into chunks
+        docs = [
             Document(
-                page_content=doc["markdown"], 
+                page_content=doc["markdown"],
                 metadata=doc.get("metadata", {})
             ) for doc in documents_data
         ]
+        self.documents = text_splitter.split_documents(docs)
         
         # Create vector store and save it
         self.logger.info(f"Creating vector store with {len(self.documents)} documents")

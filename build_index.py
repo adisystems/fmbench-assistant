@@ -1,7 +1,7 @@
 import logging
 import argparse
 from pathlib import Path
-from dsan_rag_setup import DSANRagSetup
+from fmbench_rag_setup import FMBenchRagSetup
 
 # Create logger
 logger = logging.getLogger(__name__)
@@ -25,10 +25,10 @@ logger.addHandler(handler)
 def main():
     """Main function for creating and saving the vector index"""
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description="Create and save a FAISS vector index for the DSAN RAG system")
+    parser = argparse.ArgumentParser(description="Create and save a FAISS vector index for the FMBench RAG system")
     parser.add_argument("--data-file", type=str, default="data/documents_1.json", 
                         help="Path to the JSON data file containing documents")
-    parser.add_argument("--vector-db-path", type=str, default="indexes/dsan_index", 
+    parser.add_argument("--vector-db-path", type=str, default="indexes/fmbench_index",
                         help="Path to save the FAISS vector database")
     parser.add_argument("--region", type=str, default="us-east-1", 
                         help="AWS region for Bedrock services")
@@ -46,7 +46,7 @@ def main():
         logger.info(f"Vector DB path: {args.vector_db_path}")
         
         # Create the RAG setup object
-        rag_setup = DSANRagSetup(
+        rag_setup = FMBenchRagSetup(
             region=args.region,
             data_file_path=Path(args.data_file),
             embedding_model_id=args.embedding_model,

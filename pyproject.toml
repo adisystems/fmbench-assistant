@@ -1,7 +1,7 @@
 [project]
-name = "dsan-assitant"
+name = "fmbench-assistant"
 version = "0.1.0"
-description = "AI Agent for Georgetown Data Science & Analytics program"
+description = "AI Agent for Foundation Model Benchmarking Tool"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 license = {file = "LICENSE"}

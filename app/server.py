@@ -7,7 +7,7 @@ from colorama import init, Fore
 from botocore.config import Config
 from langchain_core.tools import tool
 from utils import create_bedrock_client
-from dsan_rag_setup import DSANRagSetup
+from fmbench_rag_setup import FMBenchRagSetup
 from fastapi import FastAPI, HTTPException
 from typing import List, Optional
 from langchain_aws import ChatBedrockConverse
@@ -82,16 +82,16 @@ _bedrock_client = None
 # Tool Definition
 # ----------------------------
 @tool
-def get_dsan_info(
+def get_fmbench_info(
     question: str
 ) -> str:
     """
-    Retrieves information about Georgetown's Data Science & Analytics (DSAN) program from official documentation. 
-    Use this tool for questions about courses, requirements, faculty, admissions, or program details.
+    Retrieves information about AWS Foundation Model Benchmarking Tool (FMBench) from official documentation.
+    Use this tool for questions about benchmarking, configurations, supported models, and deployment details.
     
     Args:
-        question: A clear, specific question about Georgetown's Data Science & Analytics program,
-                 such as course offerings, degree requirements, application processes, or faculty.
+        question: A clear, specific question about AWS FMBench capabilities,
+                 such as supported instance types, inference containers, metrics, or deployment options.
                  
     Returns:
         A string containing the answer and additional context from the documentation.
@@ -101,20 +101,20 @@ def get_dsan_info(
     # Initialize the RAG system if it hasn't been set up yet
     if _rag_system is None:
         bedrock_role_arn = os.environ.get("BEDROCK_ROLE_ARN")
-        _rag_system = DSANRagSetup(bedrock_role_arn=bedrock_role_arn).setup()
+        _rag_system = FMBenchRagSetup(bedrock_role_arn=bedrock_role_arn).setup()
         
     # Use the RAG system to answer the question
     result = _rag_system.query(question)
     return result["answer"]
 
-tools = [get_dsan_info]
+tools = [get_fmbench_info]
 
 # ----------------------------
 # Agent Setup
 # ----------------------------
 SYSTEM_PROMPT = (
-    "You are a helpful academic assistant for Georgetown University's DSAN program. "
-    "Use the available tools to answer user questions about the program."
+    "You are a helpful technical assistant for the AWS Foundation Model Benchmarking Tool (FMBench). "
+    "Use the available tools to answer user questions about model benchmarking, configurations, and deployment options."
 )
 
 conversation_memory = {}
@@ -141,7 +141,7 @@ class GenerateResponse(BaseModel):
 # ----------------------------
 # FastAPI App Initialization
 # ----------------------------
-app = FastAPI(title="Georgetown University DSAN Program Information Agent", root_path="/prod")
+app = FastAPI(title="AWS Foundation Model Benchmarking Tool (FMBench) Assistant", root_path="/prod")
 
 @app.post("/generate")
 async def generate_answer(request: GenerateRequest):
@@ -245,7 +245,7 @@ if not inside_lambda:
         uvicorn.run(app, host="0.0.0.0", port=8000)
     else:
         # When imported by langchain serve, just define the app without running it
-        print("Georgetown DSAN Program Information Agent app loaded successfully")
+        print("AWS FMBench Assistant app loaded successfully")
 else:
     logger.info(f"running inside a Lambda")
     # Lambda Handler for AWS Lambda deployment

@@ -1,11 +1,11 @@
-# DSAN Assistant
+# FMBench Assistant
 
-A LangGraph-based RAG (Retrieval-Augmented Generation) system for the Georgetown University Data Science and Analytics (DSAN) program. This repository showcases a design pattern for building and deploying LangGraph agents with a progression from local development to serverless deployment. We crawl the [DSAN](https://analytics.georgetown.edu/) website and use it to provide answers to general questions about different courses. Question such as _Is dsan 6000 a prereq for 6725?_, _is there a course on bioinformatics?_, _how many core courses are there?_ and so on and so forth.
+A LangGraph-based RAG (Retrieval-Augmented Generation) system for AWS Foundation Model Benchmarking Tool (FMBench). This repository showcases a design pattern for building and deploying LangGraph agents with a progression from local development to serverless deployment. The assistant helps users understand and work with FMBench - a Python package for running performance benchmarks for Foundation Models (FM) deployed on AWS Generative AI services.
 
 
 We use the following tools and technologies:
 
-1. [Firecrawl.dev](https://www.firecrawl.dev/) and ingest the [data](data/documents_1.json) in a local [`FAISS`](https://python.langchain.com/docs/integrations/vectorstores/faiss/) index.
+1. Ingest the FMBench documentation data in a local [`FAISS`](https://python.langchain.com/docs/integrations/vectorstores/faiss/) index.
 1. [Amazon Bedrock](https://aws.amazon.com/bedrock/) for LLMs, Amazon API gateway and AWS Lambda for hosting.
 1. [LangGraph](https://www.langchain.com/langgraph) for Agents and LangChain for RAG.
 
@@ -66,7 +66,7 @@ This project demonstrates a complete workflow for developing and deploying AI ag
 
 ## Components
 
-- **RAG System**: Uses LangChain, FAISS, and AWS Bedrock to provide information about Georgetown's DSAN program
+- **RAG System**: Uses LangChain, FAISS, and AWS Bedrock to provide information about AWS Foundation Model Benchmarking Tool (FMBench)
 - **LangGraph Agent**: ReAct agent pattern with tools for retrieving program information
 - **Streamlit Frontend**: User-friendly chat interface for interacting with the agent
 - **FastAPI Backend**: Serves the agent via HTTP endpoints
@@ -76,8 +76,8 @@ This project demonstrates a complete workflow for developing and deploying AI ag
 
 
 1. **Data Collection**:
-   - Crawl data using firecrawl.dev. Save the data as JSON and place it as [`documents_1.json`](data/documents_1.json) in the `data` folder.
-   - Place the crawled data in the data folder
+   - Process FMBench documentation data and save as [`documents_1.json`](data/documents_1.json) in the `data` folder.
+   - Place the processed data in the data folder
 
 2. **Index Building**:
    - Run build_index.py to create the FAISS vector index
@@ -126,7 +126,7 @@ graph TD
 ### 1. Clone the Repository
 
 ```bash
-git https://github.com/yourusername/dsan-assistant
+git https://github.com/yourusername/fmbench-assistant
 cd dsan-assistant
 ```
 
@@ -161,7 +161,7 @@ Before running the application, you need to build the vector index from the sour
 python build_index.py
 ```
 
-This will create a FAISS index in the `indexes/dsan_index` directory.
+This will create a FAISS index in the `indexes/fmbench_index` directory.
 
 ## Running Locally
 
@@ -205,13 +205,13 @@ chmod +x build_and_push.sh
 Use the deployment script to create or update the Lambda function and API Gateway:
 
 ```bash
-python deploy.py --function-name dsan-assistant --role-arn YOUR_LAMBDA_ROLE_ARN --api-gateway
+python deploy.py --function-name fmbench-assistant --role-arn YOUR_LAMBDA_ROLE_ARN --api-gateway
 ```
 
 If you want to your Amazon Bedrock in a cross-account way i.e. the Lambda exists in say Account A but you want to use Amazon Bedrock in Account B then use the following command line
 
 ```bash
-python deploy.py --function-name dsan-assistant --role-arn YOUR_LAMBDA_ROLE_ARN  --bedrock-role-arn YOUR_ACCOUNT_B_BEDROCK_ROLE_ARN--api-gateway
+python deploy.py --function-name fmbench-assistant --role-arn YOUR_LAMBDA_ROLE_ARN  --bedrock-role-arn YOUR_ACCOUNT_B_BEDROCK_ROLE_ARN--api-gateway
 ```
 
 The IAM role you need to use for the AWS Lambda needs to have Amazon Bedrock access (for example via [`AmazonBedrockFullAccess`](https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AmazonBedrockFullAccess.html)) to use the models available via Amazon Bedrock and the models need to be enabled within your AWS account, see instructions available [here](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html).
@@ -233,14 +233,14 @@ streamlit run chatbot.py -- --api-server-url https://YOUR_API_ID.execute-api.us-
 ## Project Structure
 
 ```
-gtown-course-finder/
+fmbench-assistant/
 ├── app/                      # FastAPI application
 │   ├── __init__.py
 │   └── server.py             # FastAPI server implementation
 ├── data/                     # Source data
-│   └── documents_1.json      # DSAN program information
+│   └── documents_1.json      # FMBench documentation data
 ├── indexes/                  # Vector indexes
-│   └── dsan_index/           # FAISS index for DSAN data
+│   └── fmbench_index/        # FAISS index for FMBench data
 ├── .env                      # Environment variables (not in repo)
 ├── .gitignore                # Git ignore file
 ├── build_and_push.sh         # Script to build and push Docker image
