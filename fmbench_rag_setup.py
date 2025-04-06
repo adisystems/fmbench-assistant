@@ -196,24 +196,25 @@ class FMBenchRagSetup(BaseModel):
             
             # Create text splitter
             # Create specialized text splitter based on content type
-            text_splitter = RecursiveCharacterTextSplitter.from_language(
-                language='markdown',  # Base language as markdown since most content is markdown
-                chunk_size=2000,      # Larger chunks to maintain context
-                chunk_overlap=200,    # Increased overlap for better context preservation
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=4000,      # Increased chunk size for better context
+                chunk_overlap=400,    # More overlap to maintain context across chunks
                 separators=[
-                    # Headers
-                    "\n# ", "\n## ", "\n### ",
-                    # YAML document separators
-                    "\n---\n",
-                    # Code blocks
-                    "\n```", "```\n",
+                    # Headers (preserve full sections)
+                    "\n# ", "\n## ", "\n### ", "\n#### ",
+                    # Lists and model information
+                    "\n- ", "\n* ", "\n1. ",
+                    # Tables often containing model data
+                    "\n|", "|\n",
+                    # YAML and code blocks
+                    "\n---\n", "\n```", "```\n",
                     # Paragraphs and other breaks
                     "\n\n", "\n", " ",
                     # Fallback
                     ""
                 ],
                 keep_separator=True,
-                strip_whitespace=False,  # Preserve whitespace for code blocks
+                strip_whitespace=False,
                 length_function=len,
                 is_separator_regex=False
             )
@@ -221,8 +222,17 @@ class FMBenchRagSetup(BaseModel):
             # Convert to Document objects and split into chunks
             docs = []
             for doc in documents_data:
-                content = doc["markdown"]
-                metadata = doc.get("metadata", {})
+                content = doc["content"]
+                # Initialize metadata with file information
+                metadata = {
+                    "filename": doc["filename"],
+                    "path": doc["path"],
+                    "directory": doc["directory"],
+                    "extension": doc["extension"]
+                }
+                # Add any additional metadata if present
+                if "metadata" in doc:
+                    metadata.update(doc["metadata"])
                 
                 # Add content type detection
                 # Detect content type
@@ -327,24 +337,25 @@ class FMBenchRagSetup(BaseModel):
         self.logger.info(f"Loaded {len(documents_data)} documents from {self.data_file_path}")
         
         # Create text splitter
-        text_splitter = RecursiveCharacterTextSplitter.from_language(
-            language='markdown',  # Base language as markdown since most content is markdown
-            chunk_size=2000,      # Larger chunks to maintain context
-            chunk_overlap=200,    # Increased overlap for better context preservation
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=4000,      # Increased chunk size for better context
+            chunk_overlap=400,    # More overlap to maintain context across chunks
             separators=[
-                # Headers
-                "\n# ", "\n## ", "\n### ",
-                # YAML document separators
-                "\n---\n",
-                # Code blocks
-                "\n```", "```\n",
+                # Headers (preserve full sections)
+                "\n# ", "\n## ", "\n### ", "\n#### ",
+                # Lists and model information
+                "\n- ", "\n* ", "\n1. ",
+                # Tables often containing model data
+                "\n|", "|\n",
+                # YAML and code blocks
+                "\n---\n", "\n```", "```\n",
                 # Paragraphs and other breaks
                 "\n\n", "\n", " ",
                 # Fallback
                 ""
             ],
             keep_separator=True,
-            strip_whitespace=False,  # Preserve whitespace for code blocks
+            strip_whitespace=False,
             length_function=len,
             is_separator_regex=False
         )
@@ -352,8 +363,17 @@ class FMBenchRagSetup(BaseModel):
         # Convert to Document objects with content type detection
         docs = []
         for doc in documents_data:
-            content = doc["markdown"]
-            metadata = doc.get("metadata", {})
+            content = doc["content"]
+            # Initialize metadata with file information
+            metadata = {
+                "filename": doc["filename"],
+                "path": doc["path"],
+                "directory": doc["directory"],
+                "extension": doc["extension"]
+            }
+            # Add any additional metadata if present
+            if "metadata" in doc:
+                metadata.update(doc["metadata"])
             
             # Add content type detection
             # Detect content type
@@ -408,7 +428,8 @@ class FMBenchRagSetup(BaseModel):
         self.logger.info(f"Processing query: {question}")
         result = self.rag_chain.invoke({"input": question})
         self.logger.info(f"\n\nresult={result}\n\n")
-        citations = "Source(s): " + "\n".join([d.metadata['url'] for d in result['context']])
+        # Build citations from document paths instead of URLs
+        citations = "Source(s): " + "\n".join([d.metadata['path'] for d in result['context']])
         self.logger.info(f"citations={citations}")
         answer = f"{result['answer']}\n\n{citations}"
         self.logger.info(f"answer={answer}")
