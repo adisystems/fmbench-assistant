@@ -23,7 +23,7 @@ class GuardrailFilter(BaseModel):
 class GuardrailConfig(BaseModel):
     name: str = "fmbench-guardrails"
     description: str = Field(
-        default="Ensures the chatbot provides accurate information about the AWS Foundation Model Benchmarking Tool (FMBench) while maintaining appropriate security and usage boundaries."
+        default="Ensures the chatbot provides accurate information about the Foundation Model Benchmarking Tool (FMBench) while maintaining appropriate security and usage boundaries."
     )
     topic_policies: List[GuardrailTopicExample] = Field(
         default=[
@@ -67,14 +67,14 @@ class GuardrailConfig(BaseModel):
         default=(
             "I apologize, but I cannot provide information about sensitive implementation details, security configurations, "
             "or specific performance claims without verified benchmarking data. For more information about FMBench, "
-            "please refer to the official AWS documentation or contact the AWS support team."
+            "please refer to the official FMBench documentation or create a GitHub issue on the FMBench repo."
         )
     )
     blocked_outputs_messaging: str = Field(
         default=(
-            "I cannot provide that information as it may involve sensitive implementation details, security configurations, "
-            "or unverified performance claims. For accurate information about FMBench and AWS services, please refer to "
-            "the official AWS documentation or contact AWS support."
+            "I apologize, but I cannot provide information about sensitive implementation details, security configurations, "
+            "or specific performance claims without verified benchmarking data. For more information about FMBench, "
+            "please refer to the official FMBench documentation or create a GitHub issue on the FMBench repo."
         )
     )
 

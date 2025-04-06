@@ -1,6 +1,6 @@
 # FMBench Assistant
 
-A LangGraph-based RAG (Retrieval-Augmented Generation) system for [AWS Foundation Model Benchmarking Tool (FMBench)](https://github.com/aws-samples/foundation-model-benchmarking-tool). This repository showcases a design pattern for building and deploying LangGraph agents with a progression from local development to serverless deployment. The assistant helps users understand and work with FMBench - a Python package for running performance benchmarks for Foundation Models (FM) deployed on AWS Generative AI services.
+A LangGraph-based RAG (Retrieval-Augmented Generation) system for [Foundation Model Benchmarking Tool (FMBench)](https://github.com/aws-samples/foundation-model-benchmarking-tool). This repository showcases a design pattern for building and deploying LangGraph agents with a progression from local development to serverless deployment. The assistant helps users understand and work with FMBench - a Python package for running performance benchmarks for Foundation Models (FM) deployed on AWS Generative AI services.
 
 
 We use the following tools and technologies:
@@ -66,7 +66,7 @@ This project demonstrates a complete workflow for developing and deploying AI ag
 
 ## Components
 
-- **RAG System**: Uses LangChain, FAISS, and AWS Bedrock to provide information about AWS Foundation Model Benchmarking Tool (FMBench)
+- **RAG System**: Uses LangChain, FAISS, and AWS Bedrock to provide information about Foundation Model Benchmarking Tool (FMBench)
 - **LangGraph Agent**: ReAct agent pattern with tools for retrieving program information
 - **Streamlit Frontend**: User-friendly chat interface for interacting with the agent
 - **FastAPI Backend**: Serves the agent via HTTP endpoints

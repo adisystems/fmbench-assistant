@@ -91,8 +91,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # App title and description
-st.title("AWS FMBench Assistant")
-st.markdown("Ask questions about the AWS Foundation Model Benchmarking Tool (FMBench). You can ask about its features, usage, and general capabilities while respecting security and implementation boundaries.")
+st.title("FMBench Assistant")
+st.markdown("Ask questions about the Foundation Model Benchmarking Tool (FMBench). You can ask about its features, usage, and general capabilities while respecting security and implementation boundaries.")
 
 # Initialize session state variables
 if 'messages' not in st.session_state:
@@ -279,7 +279,7 @@ def main():
                 user_input = st.text_input(
                     "Continue the conversation:", 
                     key="user_question", 
-                    placeholder="Ask about AWS FMBench features and capabilities..."
+                    placeholder="Ask about FMBench features and capabilities..."
                 )
                 col1, col2 = st.columns([4, 1])
                 with col2:
@@ -305,8 +305,8 @@ def main():
 # Footer with small print
 st.markdown("""
 <div class="small-text">
-<p>This agent provides information about AWS Foundation Model Benchmarking Tool (FMBench) based on publicly available documentation.
-For the most up-to-date information and specific implementation details, please refer to the official AWS documentation.</p>
+<p>This agent provides information about Foundation Model Benchmarking Tool (FMBench) based on publicly available documentation.
+For the most up-to-date information and specific implementation details, please refer to the <a href=https://aws-samples.github.io/foundation-model-benchmarking-tool/>official documentation</a>.</p>
 </div>
 """, unsafe_allow_html=True)
 

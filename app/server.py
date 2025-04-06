@@ -86,11 +86,11 @@ def get_fmbench_info(
     question: str
 ) -> str:
     """
-    Retrieves information about AWS Foundation Model Benchmarking Tool (FMBench) from official documentation.
+    Retrieves information about Foundation Model Benchmarking Tool (FMBench) from official documentation.
     Use this tool for questions about benchmarking, configurations, supported models, and deployment details.
     
     Args:
-        question: A clear, specific question about AWS FMBench capabilities,
+        question: A clear, specific question about FMBench capabilities,
                  such as supported instance types, inference containers, metrics, or deployment options.
                  
     Returns:
@@ -113,7 +113,7 @@ tools = [get_fmbench_info]
 # Agent Setup
 # ----------------------------
 SYSTEM_PROMPT = (
-    "You are a helpful technical assistant for the AWS Foundation Model Benchmarking Tool (FMBench). "
+    "You are a helpful technical assistant for the Foundation Model Benchmarking Tool (FMBench). "
     "Use the available tools to answer user questions about model benchmarking, configurations, and deployment options."
 )
 
@@ -141,7 +141,7 @@ class GenerateResponse(BaseModel):
 # ----------------------------
 # FastAPI App Initialization
 # ----------------------------
-app = FastAPI(title="AWS Foundation Model Benchmarking Tool (FMBench) Assistant", root_path="/prod")
+app = FastAPI(title="Foundation Model Benchmarking Tool (FMBench) Assistant", root_path="/prod")
 
 @app.post("/generate")
 async def generate_answer(request: GenerateRequest):
@@ -245,7 +245,7 @@ if not inside_lambda:
         uvicorn.run(app, host="0.0.0.0", port=8000)
     else:
         # When imported by langchain serve, just define the app without running it
-        print("AWS FMBench Assistant app loaded successfully")
+        print("FMBench Assistant app loaded successfully")
 else:
     logger.info(f"running inside a Lambda")
     # Lambda Handler for AWS Lambda deployment

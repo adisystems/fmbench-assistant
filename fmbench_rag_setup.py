@@ -273,7 +273,7 @@ class FMBenchRagSetup(BaseModel):
         # Create prompt template
         system_prompt = (
             "You are a friendly and helpful AI assistant that answers questions about the "
-            "AWS Foundation Model Benchmarking Tool (FMBench). "
+            "Foundation Model Benchmarking Tool (FMBench). "
             "Use the provided context to answer the question concisely. "
             "If you don't know, say 'I don't know'.\n\n"
             "When responding, consider the content type:\n\n"
