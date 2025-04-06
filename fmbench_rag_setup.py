@@ -77,9 +77,9 @@ class FMBenchRagSetup(BaseModel):
     """
     region: str = Field(default="us-east-1", description="AWS region to use for Amazon Bedrock")
     data_file_path: Path = Field(default=Path("data/documents_1.json"), description="Path to the documents data file")
-    response_model_id: str = Field(default="us.amazon.nova-micro-v1:0", description="Bedrock model ID to use")
+    response_model_id: str = Field(default="us.anthropic.claude-3-5-haiku-20241022-v1:0", description="Bedrock model ID to use") #us.amazon.nova-pro-v1:0"
     embedding_model_id: str = Field(default="amazon.titan-embed-text-v1", description="Amazon Bedrock embedding model to use")
-    retriever_k: int = Field(default=5, description="Number of documents to retrieve")
+    retriever_k: int = Field(default=10, description="Number of documents to retrieve")
     vector_db_path: Optional[str] = Field(default=os.path.join("indexes", "fmbench_index"), description="Path to load/save FAISS vector database")
     bedrock_role_arn: Optional[str] = Field(default=None, description="ARN of the IAM role to assume for Bedrock cross-account access")
     
@@ -274,8 +274,8 @@ class FMBenchRagSetup(BaseModel):
         system_prompt = (
             "You are a friendly and helpful AI assistant that answers questions about the "
             "Foundation Model Benchmarking Tool (FMBench). "
-            "Use the provided context to answer the question concisely. "
-            "If you don't know, say 'I don't know'.\n\n"
+            "Use the provided context to answer the question concisely. Do not use your prior knowledge to answer any question."
+            "If you don't know, say I do not know the answer to this question, please consult FMBench documentation.\n\n"
             "When responding, consider the content type:\n\n"
             "1. For YAML configuration (content_type: yaml):\n"
             "   - Preserve proper YAML indentation and structure\n"
@@ -293,6 +293,7 @@ class FMBenchRagSetup(BaseModel):
             "4. For plain markdown (content_type: markdown):\n"
             "   - Format response with clear paragraph structure\n"
             "   - Use appropriate markdown formatting\n\n"
+            "5. Remember to always include citations i.e. links to the original content that you have in the metadata in your final response\n\n"
             "Context: {context}\n\n"
             "Remember to validate syntax in your responses and maintain proper formatting "
             "based on the content type. Use appropriate data types and structures."
@@ -406,6 +407,9 @@ class FMBenchRagSetup(BaseModel):
             
         self.logger.info(f"Processing query: {question}")
         result = self.rag_chain.invoke({"input": question})
-        from pprint import pprint
-        pprint(result)
-        return result
+        self.logger.info(f"\n\nresult={result}\n\n")
+        citations = "Source(s): " + "\n".join([d.metadata['url'] for d in result['context']])
+        self.logger.info(f"citations={citations}")
+        answer = f"{result['answer']}\n\n{citations}"
+        self.logger.info(f"answer={answer}")
+        return answer

@@ -13,7 +13,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# Georgetown colors and custom CSS for styling
+# Custom CSS for styling (maintaining the chat UI)
 st.markdown("""
 <style>
     .main {
@@ -25,26 +25,6 @@ st.markdown("""
         font-size: 16px;
         border-color: #232F3E;  # AWS color
     }
-    .user-message {
-        background-color: #C0C0C0;
-        padding: 10px 15px;
-        border-radius: 15px 15px 15px 0;
-        margin: 10px 0;
-        max-width: 80%;
-        align-self: flex-start;
-        color: #232F3E;
-    }
-    .assistant-message {
-        background-color: #E0E0E0;
-        padding: 10px 15px;
-        border-radius: 15px 15px 0 15px;
-        margin: 10px 0;
-        max-width: 80%;
-        margin-left: auto;
-        align-self: flex-end;
-        color: #232F3E;
-        white-space: pre-line;  /* This helps preserve line breaks */
-    }
     .timestamp {
         font-size: 10px;
         color: #6A6A6A;
@@ -52,8 +32,8 @@ st.markdown("""
         margin-bottom: 8px;
     }
     .user-timestamp {
-        text-align: left;
-        margin-left: 5px;
+        text-align: right;
+        margin-right: 5px;
     }
     .assistant-timestamp {
         text-align: right;
@@ -103,6 +83,8 @@ if 'awaiting_response' not in st.session_state:
     st.session_state.awaiting_response = False
 if 'thread_id' not in st.session_state:
     st.session_state.thread_id = 0
+if 'display_messages' not in st.session_state:
+    st.session_state.display_messages = []
 
 # Get command line arguments safely
 def get_args():
@@ -136,179 +118,124 @@ def get_args():
 args = get_args()
 API_URL = args.api_server_url
 
-# Define a helper function for rerunning safely
-def safe_rerun():
-    try:
-        st.rerun()  # Use the newer st.rerun() instead of experimental_rerun
-    except:
-        try:
-            st.experimental_rerun()  # Fallback for older Streamlit versions
-        except:
-            pass  # If neither works, just continue
-
 def get_current_timestamp():
     """Get current timestamp in a readable format."""
     now = datetime.datetime.now()
     return now.strftime("%Y-%m-%d %H:%M:%S")
 
-def format_message(message_content):
-    """Format message content for better display with HTML."""
-    content = message_content
-    # Clean up repeated words and section headers
-    content = re.sub(r'(\b\w+\b)(\s+\1)+', r'\1', content)
-    content = re.sub(r'(COURSE DESCRIPTION:?\s*){2,}', r'COURSE DESCRIPTION:', content, flags=re.IGNORECASE)
-    content = re.sub(r'(PREREQUISITES:?\s*){2,}', r'PREREQUISITES:', content, flags=re.IGNORECASE)
-    content = re.sub(r'(ADDITIONAL INFORMATION:?\s*){2,}', r'ADDITIONAL INFORMATION:', content, flags=re.IGNORECASE)
-    content = re.sub(r'(RESOURCES:?\s*){2,}', r'RESOURCES:', content, flags=re.IGNORECASE)
-    content = re.sub(r'(COURSE OBJECTIVES:?\s*){2,}', r'COURSE OBJECTIVES:', content, flags=re.IGNORECASE)
-    content = re.sub(r'(REQUIRED MATERIALS:?\s*){2,}', r'REQUIRED MATERIALS:', content, flags=re.IGNORECASE)
-    
-    # Bold certain labels
-    content = re.sub(r'(Course|Department|Professor|Schedule|Credits|Location):\s*([^\n]+)', 
-                     r'<strong>\1:</strong> \2', 
-                     content)
-    
-    # Format section headers
-    content = re.sub(r'(COURSE DESCRIPTION|PREREQUISITES|COURSE OBJECTIVES|REQUIRED MATERIALS|ADDITIONAL INFORMATION|RESOURCES):', 
-                     r'<h4 style="color: #041E42; margin-top: 16px; margin-bottom: 8px;">\1</h4>', 
-                     content)
-    
-    # Make double line breaks more visually distinct
-    content = content.replace('\n\n', '<br><br>')
-    
-    # Replace single newlines with HTML breaks
-    content = content.replace('\n', '<br>')
-    
-    return content
-
-def stream_response(question):
-    """Make API request to get the chatbot response and simulate streaming."""
-    st.session_state.awaiting_response = True
-    
+def process_response(question):
+    """Make API request to get the chatbot response."""
     # Add the user's question to the conversation history with timestamp
     timestamp = get_current_timestamp()
+    
+    # First display the user message immediately
+    with st.chat_message("user"):
+        st.write(question)
+        st.caption(f"{timestamp}")
+    
+    # Add to session state
     st.session_state.messages.append({"role": "user", "content": question, "timestamp": timestamp})
     
-    # Create a placeholder for the streaming response
-    message_placeholder = st.empty()
-    
-    try:
-        # Updated payload to include thread_id for conversation memory
-        payload = {
-            "question": question,
-            "thread_id": st.session_state.thread_id
-        }
+    # Create placeholder for assistant message
+    with st.chat_message("assistant"):
+        message_placeholder = st.empty()
+        message_placeholder.markdown("Thinking...")
         
-        with st.spinner("Searching for FMBench information..."):
-            response = requests.post(API_URL, json=payload)
-            if response.status_code == 200:
-                result = response.json()
-                # Updated to handle the new response format
-                outputs = result.get("result", [])
-                
-                # Find the AI's response (it will be the last 'ai' message)
-                ai_messages = [msg for msg in outputs if msg["role"] == "ai"]
-                if ai_messages:
-                    ai_response = ai_messages[-1]["content"]
+        try:
+            # Updated payload to include thread_id for conversation memory
+            payload = {
+                "question": question,
+                "thread_id": st.session_state.thread_id
+            }
+            
+            with st.spinner("Searching for FMBench information..."):
+                response = requests.post(API_URL, json=payload)
+                if response.status_code == 200:
+                    result = response.json()
+                    # Updated to handle the new response format
+                    outputs = result.get("result", [])
                     
-                    # Apply formatting to the complete response once
-                    formatted_full_response = format_message(ai_response)
-                    
-                    # Get timestamp for the assistant's response
-                    response_timestamp = get_current_timestamp()
-                    
-                    # Store original with timestamp for session
-                    st.session_state.messages.append({
-                        "role": "assistant", 
-                        "content": ai_response,
-                        "timestamp": response_timestamp
-                    })
-                    
-                    # Display the entire formatted response at once
-                    message_placeholder.markdown(
-                        f'<div class="assistant-message">{formatted_full_response}</div>' + 
-                        f'<div class="timestamp assistant-timestamp">{response_timestamp}</div>', 
-                        unsafe_allow_html=True
-                    )
+                    # Find the AI's response (it will be the last 'ai' message)
+                    ai_messages = [msg for msg in outputs if msg["role"] == "ai"]
+                    if ai_messages:
+                        ai_response = ai_messages[-1]["content"]
+                        
+                        # Get timestamp for the assistant's response
+                        response_timestamp = get_current_timestamp()
+                        
+                        # Update the placeholder with the actual response
+                        message_placeholder.markdown(ai_response)
+                        st.caption(f"{response_timestamp}")
+                        
+                        # Store original with timestamp for session
+                        st.session_state.messages.append({
+                            "role": "assistant", 
+                            "content": ai_response,
+                            "timestamp": response_timestamp
+                        })
+                    else:
+                        message_placeholder.error("No response from the assistant.")
                 else:
-                    message_placeholder.markdown(
-                        f'<div class="system-message">No response from the assistant.</div>', 
-                        unsafe_allow_html=True
-                    )
-            else:
-                message_placeholder.markdown(
-                    f'<div class="system-message">Error: {response.status_code} - {response.text}</div>', 
-                    unsafe_allow_html=True
-                )
-    except Exception as e:
-        message_placeholder.markdown(
-            f'<div class="system-message">Error: {str(e)}</div>', 
-            unsafe_allow_html=True
-        )
-    
-    st.session_state.awaiting_response = False
-    safe_rerun()
+                    message_placeholder.error(f"Error: {response.status_code} - {response.text}")
+            
+        except Exception as e:
+            message_placeholder.error(f"Error: {str(e)}")
 
-def main():
-    # Display conversation history
+def display_chat_history():
+    """Display the chat history."""
     for message in st.session_state.messages:
         timestamp = message.get("timestamp", "")
         
         if message["role"] == "user":
-            st.markdown(
-                f'<div class="user-message">{message["content"]}</div>' + 
-                f'<div class="timestamp user-timestamp">{timestamp}</div>', 
-                unsafe_allow_html=True
-            )
+            with st.chat_message("user"):
+                st.write(message["content"])
+                st.caption(f"{timestamp}")
         else:
-            formatted_content = format_message(message["content"])
-            st.markdown(
-                f'<div class="assistant-message">{formatted_content}</div>' + 
-                f'<div class="timestamp assistant-timestamp">{timestamp}</div>', 
-                unsafe_allow_html=True
-            )
-    
-    # Add some spacing
-    st.write("")
-    st.write("")
-    
-    # Input form for user questions
-    if not st.session_state.awaiting_response:
-        with st.container():
-            with st.form(key="query_form", clear_on_submit=True):
-                user_input = st.text_input(
-                    "Continue the conversation:", 
-                    key="user_question", 
-                    placeholder="Ask about FMBench features and capabilities..."
-                )
-                col1, col2 = st.columns([4, 1])
-                with col2:
-                    submit_button = st.form_submit_button("Submit")
-                if submit_button and user_input:
-                    st.session_state.pending_question = user_input
-                    safe_rerun()
+            with st.chat_message("assistant"):
+                # Use Streamlit's native markdown rendering
+                st.markdown(message["content"])
+                st.caption(f"{timestamp}")
+
+def main():
+    # Display existing chat history first
+    if len(st.session_state.messages) > 0 and not st.session_state.awaiting_response:
+        display_chat_history()
     
     # Process pending question if present
     if st.session_state.get("pending_question"):
         question = st.session_state.pending_question
         st.session_state.pending_question = None
-        stream_response(question)
+        st.session_state.awaiting_response = True
+        
+        # Process the response (displays both user question and assistant answer)
+        process_response(question)
+        
+        # Mark that we're done processing
+        st.session_state.awaiting_response = False
+    
+    # Input for user questions
+    if not st.session_state.awaiting_response:
+        # Use Streamlit's chat_input for a more natural chat interface
+        user_input = st.chat_input("Ask about FMBench features and capabilities...")
+        if user_input:
+            st.session_state.pending_question = user_input
+            st.rerun()
     
     # Button to reset the conversation
     if not st.session_state.awaiting_response:
-        if st.button("Start New Conversation"):
+        if st.sidebar.button("Start New Conversation"):
             st.session_state.messages = []
             # Generate a new thread ID when starting a new conversation
             st.session_state.thread_id = st.session_state.get('thread_id', 0) + 1
-            safe_rerun()
+            st.rerun()
 
 # Footer with small print
-st.markdown("""
-<div class="small-text">
-<p>This agent provides information about Foundation Model Benchmarking Tool (FMBench) based on publicly available documentation.
-For the most up-to-date information and specific implementation details, please refer to the <a href=https://aws-samples.github.io/foundation-model-benchmarking-tool/>official documentation</a>.</p>
-</div>
-""", unsafe_allow_html=True)
+st.sidebar.markdown("""
+### About
+This agent provides information about Foundation Model Benchmarking Tool (FMBench) based on publicly available documentation.
+
+For the most up-to-date information and specific implementation details, please refer to the [official documentation](https://aws-samples.github.io/foundation-model-benchmarking-tool/).
+""")
 
 # Run the main app flow
 if __name__ == "__main__":

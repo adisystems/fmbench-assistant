@@ -105,7 +105,7 @@ def get_fmbench_info(
         
     # Use the RAG system to answer the question
     result = _rag_system.query(question)
-    return result["answer"]
+    return result
 
 tools = [get_fmbench_info]
 
@@ -114,15 +114,17 @@ tools = [get_fmbench_info]
 # ----------------------------
 SYSTEM_PROMPT = (
     "You are a helpful technical assistant for the Foundation Model Benchmarking Tool (FMBench). "
-    "Use the available tools to answer user questions about model benchmarking, configurations, and deployment options."
-)
+    "Use the available tools to answer user questions about model benchmarking, configurations, and deployment options." 
+    "1. Do not include your internal thinking process in the answer provided to the user."
+    "2. Always include citations i.e. links to the original content in your answer."
+    "3. Do not answer any question that is unrelated to benchmarking and evaluation. Just say I am friendly assistant only knowledgeable about FMBench so please ask me any questions related to that.")
 
 conversation_memory = {}
 class GenerateRequest(BaseModel):
     question: str = Field(..., description="The question to answer")
     region: str = Field(default="us-east-1", description="AWS region for Bedrock")
     response_model_id: str = Field(
-        default="us.amazon.nova-lite-v1:0", #us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+        default="us.anthropic.claude-3-5-haiku-20241022-v1:0", #us.anthropic.claude-3-5-sonnet-20241022-v2:0" us.amazon.nova-pro-v1:0
         description="Bedrock model ID to use"
     )
     thread_id: Optional[int] = Field(

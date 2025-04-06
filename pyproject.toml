@@ -24,6 +24,8 @@ dependencies = [
     "streamlit>=1.44.0",
     "duckduckgo-search>=7.5.4",
     "faiss-cpu>=1.10.0",
+    "zmq>=0.0.0",
+    "ipykernel>=6.29.5",
 ]
 
 [project.optional-dependencies]
