@@ -195,19 +195,61 @@ class FMBenchRagSetup(BaseModel):
             self.logger.info(f"Loaded {len(documents_data)} documents from {self.data_file_path}")
             
             # Create text splitter
-            text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=4000,
-                chunk_overlap=200,
+            # Create specialized text splitter based on content type
+            text_splitter = RecursiveCharacterTextSplitter.from_language(
+                language='markdown',  # Base language as markdown since most content is markdown
+                chunk_size=2000,      # Larger chunks to maintain context
+                chunk_overlap=200,    # Increased overlap for better context preservation
+                separators=[
+                    # Headers
+                    "\n# ", "\n## ", "\n### ",
+                    # YAML document separators
+                    "\n---\n",
+                    # Code blocks
+                    "\n```", "```\n",
+                    # Paragraphs and other breaks
+                    "\n\n", "\n", " ",
+                    # Fallback
+                    ""
+                ],
+                keep_separator=True,
+                strip_whitespace=False,  # Preserve whitespace for code blocks
                 length_function=len,
+                is_separator_regex=False
             )
             
             # Convert to Document objects and split into chunks
-            docs = [
-                Document(
-                    page_content=doc["markdown"],
-                    metadata=doc.get("metadata", {})
-                ) for doc in documents_data
-            ]
+            docs = []
+            for doc in documents_data:
+                content = doc["markdown"]
+                metadata = doc.get("metadata", {})
+                
+                # Add content type detection
+                # Detect content type
+                if content.strip().startswith('---') or '.yaml' in metadata.get('source', '').lower() or '.yml' in metadata.get('source', '').lower():
+                    metadata['content_type'] = 'yaml'
+                    # Preserve indentation for YAML
+                    content = '\n'.join(line for line in content.splitlines())
+                elif '```' in content:
+                    metadata['content_type'] = 'markdown_with_code'
+                    # Count code blocks
+                    code_blocks = content.count('```')
+                    metadata['code_blocks_count'] = code_blocks // 2  # Divide by 2 since each block has opening and closing
+                elif any(heading.startswith('#') for heading in content.splitlines()):
+                    metadata['content_type'] = 'markdown_with_headers'
+                    # Extract heading level information
+                    max_heading_level = max(
+                        (len(line.split()[0]) for line in content.splitlines() if line.startswith('#')),
+                        default=0
+                    )
+                    metadata['max_heading_level'] = max_heading_level
+                else:
+                    metadata['content_type'] = 'markdown'
+                
+                docs.append(Document(
+                    page_content=content,
+                    metadata=metadata
+                ))
             self.documents = text_splitter.split_documents(docs)
             
             # Create vector store
@@ -234,7 +276,26 @@ class FMBenchRagSetup(BaseModel):
             "AWS Foundation Model Benchmarking Tool (FMBench). "
             "Use the provided context to answer the question concisely. "
             "If you don't know, say 'I don't know'.\n\n"
-            "{context}"
+            "When responding, consider the content type:\n\n"
+            "1. For YAML configuration (content_type: yaml):\n"
+            "   - Preserve proper YAML indentation and structure\n"
+            "   - Use --- as document separators when appropriate\n"
+            "   - Include necessary comments to explain configuration options\n"
+            "   - Follow YAML best practices for complex nested structures\n\n"
+            "2. For markdown with code (content_type: markdown_with_code):\n"
+            "   - Keep code blocks intact with proper language tags\n"
+            "   - Ensure code formatting and indentation is preserved\n"
+            "   - Provide explanatory text around code examples\n\n"
+            "3. For markdown with headers (content_type: markdown_with_headers):\n"
+            "   - Maintain the hierarchical structure of the content\n"
+            "   - Use appropriate header levels in responses\n"
+            "   - Preserve the logical flow of documentation\n\n"
+            "4. For plain markdown (content_type: markdown):\n"
+            "   - Format response with clear paragraph structure\n"
+            "   - Use appropriate markdown formatting\n\n"
+            "Context: {context}\n\n"
+            "Remember to validate syntax in your responses and maintain proper formatting "
+            "based on the content type. Use appropriate data types and structures."
         )
         
         prompt = ChatPromptTemplate.from_messages([
@@ -265,19 +326,60 @@ class FMBenchRagSetup(BaseModel):
         self.logger.info(f"Loaded {len(documents_data)} documents from {self.data_file_path}")
         
         # Create text splitter
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=4000,
-            chunk_overlap=200,
+        text_splitter = RecursiveCharacterTextSplitter.from_language(
+            language='markdown',  # Base language as markdown since most content is markdown
+            chunk_size=2000,      # Larger chunks to maintain context
+            chunk_overlap=200,    # Increased overlap for better context preservation
+            separators=[
+                # Headers
+                "\n# ", "\n## ", "\n### ",
+                # YAML document separators
+                "\n---\n",
+                # Code blocks
+                "\n```", "```\n",
+                # Paragraphs and other breaks
+                "\n\n", "\n", " ",
+                # Fallback
+                ""
+            ],
+            keep_separator=True,
+            strip_whitespace=False,  # Preserve whitespace for code blocks
             length_function=len,
+            is_separator_regex=False
         )
         
-        # Convert to Document objects and split into chunks
-        docs = [
-            Document(
-                page_content=doc["markdown"],
-                metadata=doc.get("metadata", {})
-            ) for doc in documents_data
-        ]
+        # Convert to Document objects with content type detection
+        docs = []
+        for doc in documents_data:
+            content = doc["markdown"]
+            metadata = doc.get("metadata", {})
+            
+            # Add content type detection
+            # Detect content type
+            if content.strip().startswith('---') or '.yaml' in metadata.get('source', '').lower() or '.yml' in metadata.get('source', '').lower():
+                metadata['content_type'] = 'yaml'
+                # Preserve indentation for YAML
+                content = '\n'.join(line for line in content.splitlines())
+            elif '```' in content:
+                metadata['content_type'] = 'markdown_with_code'
+                # Count code blocks
+                code_blocks = content.count('```')
+                metadata['code_blocks_count'] = code_blocks // 2  # Divide by 2 since each block has opening and closing
+            elif any(heading.startswith('#') for heading in content.splitlines()):
+                metadata['content_type'] = 'markdown_with_headers'
+                # Extract heading level information
+                max_heading_level = max(
+                    (len(line.split()[0]) for line in content.splitlines() if line.startswith('#')),
+                    default=0
+                )
+                metadata['max_heading_level'] = max_heading_level
+            else:
+                metadata['content_type'] = 'markdown'
+            
+            docs.append(Document(
+                page_content=content,
+                metadata=metadata
+            ))
         self.documents = text_splitter.split_documents(docs)
         
         # Create vector store and save it
