@@ -11,7 +11,7 @@ We use the following tools and technologies:
 
 ## Demo video
 
-![DSAN assistant demo](img/demo.gif)
+![DSAN assistant demo](img/chatbot-demo.mov)
 
 
 ## Architecture Overview
