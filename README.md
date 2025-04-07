@@ -11,7 +11,7 @@ We use the following tools and technologies:
 
 ## Demo video
 
-![DSAN assistant demo](img/demo.gif)
+![DSAN assistant demo](img/chatbot-demo.gif)
 
 
 ## Architecture Overview
@@ -260,7 +260,7 @@ fmbench-assistant/
 - **Vector Search**: FAISS-based retrieval for efficient document search
 - **AWS Bedrock Integration**: Leverages AWS's foundation models
 - **Cross-Account Access**: Supports cross-account access to AWS Bedrock
-- **Streamlit UI**: User-friendly interface with Georgetown branding
+- **Streamlit UI**: User-friendly interface for interacting with the agent
 
 ## License
 
