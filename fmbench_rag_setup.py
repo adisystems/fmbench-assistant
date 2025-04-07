@@ -77,7 +77,7 @@ class FMBenchRagSetup(BaseModel):
     """
     region: str = Field(default="us-east-1", description="AWS region to use for Amazon Bedrock")
     data_file_path: Path = Field(default=Path("data/documents_1.json"), description="Path to the documents data file")
-    response_model_id: str = Field(default="us.anthropic.claude-3-5-haiku-20241022-v1:0", description="Bedrock model ID to use") #us.amazon.nova-pro-v1:0"
+    response_model_id: str = Field(default="us.anthropic.claude-3-5-haiku-20241022-v1:0", description="Bedrock model ID to use") #us.amazon.nova-pro-v1:0" us.anthropic.claude-3-5-haiku-20241022-v1:0
     embedding_model_id: str = Field(default="amazon.titan-embed-text-v1", description="Amazon Bedrock embedding model to use")
     retriever_k: int = Field(default=10, description="Number of documents to retrieve")
     vector_db_path: Optional[str] = Field(default=os.path.join("indexes", "fmbench_index"), description="Path to load/save FAISS vector database")
@@ -292,6 +292,7 @@ class FMBenchRagSetup(BaseModel):
             "   - Use --- as document separators when appropriate\n"
             "   - Include necessary comments to explain configuration options\n"
             "   - Follow YAML best practices for complex nested structures\n\n"
+            "   - Always include YAML text between ```yaml and ```\n\n"
             "2. For markdown with code (content_type: markdown_with_code):\n"
             "   - Keep code blocks intact with proper language tags\n"
             "   - Ensure code formatting and indentation is preserved\n"

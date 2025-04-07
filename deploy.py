@@ -521,6 +521,9 @@ def deploy_api_gateway(function_name, function_arn, region, api_name=None, stage
         print(f"{api_url}/docs")
         print("=" * 80)
         
+        print("\nFor the Streamlit app:")
+        print(f"streamlit run chatbot.py -- --api-server-url {api_url}/generate")
+        print("=" * 80)
         return True
         
     except Exception as e:
